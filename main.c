@@ -2,13 +2,10 @@
 #include "random.h"
 
 int main() {
+	srand(time(NULL));
 	double ra = 0;
-	printf("Hello, World!\n");
-
-	
+	printf("hello world\n");
 	ra = urand01();
-
-
-	printf("lior gal test new vs code\n");
+	printf("%lf\n",ra);
 	return 0;
 }
