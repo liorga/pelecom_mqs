@@ -6,7 +6,8 @@ int main() {
 	printf("Hello, World!\n");
 	
 	ra = urand01();
-	printf("is : %lf",ra);
+	printf("is : %lf\n",ra);
 	
+	printf("lior gal \n");
 	return 0;
 }
