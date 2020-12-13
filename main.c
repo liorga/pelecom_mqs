@@ -9,5 +9,7 @@ int main() {
 	ra = urand01();
 
 	
+
+	printf("lior gal test new vs code\n");
 	return 0;
 }
