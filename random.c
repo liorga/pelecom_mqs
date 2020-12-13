@@ -20,7 +20,6 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <limits.h>
-#include <math.h>
 #include <sys/time.h>
 #include "random.h"
 
@@ -28,8 +27,6 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-double nrand01();
-double urand01();
 
 
 /**

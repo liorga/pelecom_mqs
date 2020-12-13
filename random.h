@@ -13,5 +13,7 @@ void   initrand();
 double nrand();
 double pnrand( double avg, double std, double min );
 double urand( double min, double max );
+double nrand01();
+double urand01();
 
 #endif //PELECOM_MQS_RANDOM_H
