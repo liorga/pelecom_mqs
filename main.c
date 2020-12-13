@@ -7,7 +7,7 @@ int main() {
 
 	
 	ra = urand01();
-	printf("is : %lf\n",ra);
+
 	
 	return 0;
 }
