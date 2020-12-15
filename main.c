@@ -7,7 +7,9 @@ int main() {
 	
 	ra = urand01();
 	printf("is : %lf\n",ra);
-	
 	printf("lior gal \n");
+
+	
+
 	return 0;
 }
