@@ -8,7 +8,8 @@
 /**
  *  random.h - header file for random number generating routines
  */
-
+#include <stdlib.h>
+#include <time.h>
 void   initrand();
 double nrand();
 double pnrand( double avg, double std, double min );
