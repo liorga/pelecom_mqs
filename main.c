@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <resolv.h>
+#include <errno.h>
 #include "random.h"
 #include "pelecom.h"
 #include "stopwatch.h"
@@ -28,40 +29,21 @@ typedef struct msg
 	char word[MAX_SIZE];
 } message;
 
-void send_message(message m,int msgid){
-	pid_t pid;
-	pid = fork();
-	if (pid == 0) {
-		if (msgsnd(msgid, &m, sizeof(message), 0) == -1) {
-			perror("send msg\n");
-			exit(EXIT_FAILURE);
-		}
-	}
-}
 
-void rcv_message(message m,int msgid){
-	pid_t pid;
-	pid = fork();
-	if (pid == 0) {
-		if (msgrcv(msgid, &m, sizeof(message),1, 0) == -1) {
-			perror("send msg\n");
-			exit(EXIT_FAILURE);
-		}
-		printf("the message received is :\n");
-		printf(" %s\n",m.word);
-	}
-}
+void send_message(message m,int msgid);
+void rcv_message(message m,int msgid);
+void clear_msg_queue(int newc_msgid,int repair_msgid,int upgrade_msgid,int lineman_msgid, int quit_msgid);
+
 
 int main() {
 
-	/**
-	 * proccess name keys will be
-	 * upgrade
-	 * fixing
-	 * entry
-	 * openNewAccount
-	 * exitProccess
-	 */
+
+	int NEWC_msgid;
+	int UPGRADE_msgid;
+	int REPAIR_msgid;
+	int QUIT_msgid;
+	int LINEMAN_msgid;
+	
 	message m;
 	m.mtype = 1;
 	
@@ -92,30 +74,73 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	int msgid = msgget(myKey,0644 | IPC_CREAT);
-	if (msgid == -1){
+	NEWC_msgid = msgget(newCustomerKey,0644 | IPC_CREAT);
+	printf("message id is %d\n",NEWC_msgid);
+	if (NEWC_msgid == -1){
 		perror("msgid\n");
 		exit(EXIT_FAILURE);
 	}
+	
+	
 	char* line = NULL;
 	ssize_t bufsize = 0; // have getline allocate a buffer for us
 	 while (fgets(m.word,MAX_SIZE,stdin)){
 	 	printf("\n");
-		send_message(m,msgid);
-		rcv_message(m,msgid);
+		send_message(m,NEWC_msgid);
+		rcv_message(m,NEWC_msgid);
 	}
 	
-	if (msgctl(msgid,IPC_RMID,NULL) == -1){
-		perror("msgcntrl\n");
+	clear_msg_queue(NEWC_msgid,REPAIR_msgid,UPGRADE_msgid,LINEMAN_msgid,QUIT_msgid);
+	printf("reached here bitch\n");
+	return 0;
+}
+
+
+
+void send_message(message m,int msgid){
+	pid_t pid;
+	pid = fork();
+	if (pid == 0) {
+		if (msgsnd(msgid, &m, sizeof(message), 0) == -1) {
+			perror("send msg\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+}
+
+void rcv_message(message m,int msgid){
+	pid_t pid;
+	pid = fork();
+	if (pid == 0) {
+		if (msgrcv(msgid, &m, sizeof(message),m.mtype, 0) == -1) {
+			perror("rcv msg\n");
+			exit(EXIT_FAILURE);
+		}
+		printf("the message received is :\n");
+		printf(" %s\n",m.word);
+	}
+}
+
+void clear_msg_queue(int newc_msgid,int repair_msgid,int upgrade_msgid,int lineman_msgid, int quit_msgid){
+	//close all the message queues that has created
+	if (msgctl(newc_msgid,IPC_RMID,NULL) == -1){
+		perror("newc_msgid\n");
 		exit(EXIT_FAILURE);
 	}
-	return 0;
+	if (msgctl(repair_msgid,IPC_RMID,NULL) == -1){
+		perror("repair_msgid\n");
+		exit(EXIT_FAILURE);
+	}
+	if (msgctl(upgrade_msgid,IPC_RMID,NULL) == -1){
+		perror("upgrade_msgid\n");
+		exit(EXIT_FAILURE);
+	}
+	if (msgctl(lineman_msgid,IPC_RMID,NULL) == -1){
+		perror("lineman_msgid\n");
+		exit(EXIT_FAILURE);
+	}
+	if (msgctl(quit_msgid,IPC_RMID,NULL) == -1){
+		perror("quit_msgid\n");
+		exit(EXIT_FAILURE);
+	}
 }

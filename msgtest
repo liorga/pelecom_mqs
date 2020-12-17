@@ -1,0 +1,6 @@
+assigment for today 17.12.20
+
+1.handle the random creation of new customers and send them to the line manager queue
+
+2.handle the line manager function that reads customer by customer from its queue and send every customer to its right
+queue for service.
