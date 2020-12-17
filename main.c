@@ -30,20 +30,19 @@ void send_message(Customer m,int msgid);
 void rcv_message(Customer m,int msgid);
 void customer_entery();
 int rand_type();
+void sig_handler(int signum);
 void clear_msg_queue(int newc_msgid,int repair_msgid,int upgrade_msgid,int lineman_msgid, int quit_msgid);
-
+//messages ids
+int NEWC_msgid;
+int UPGRADE_msgid;
+int REPAIR_msgid;
+int QUIT_msgid;
+int LINEMAN_msgid;
 
 int main() {
-
+	signal(SIGINT,sig_handler); // Register signal handler
 	//srand(time(NULL));
 	initrand();//put in all func that usr rand for better randomization
-	//messages ids
-	int NEWC_msgid;
-	int UPGRADE_msgid;
-	int REPAIR_msgid;
-	int QUIT_msgid;
-	int LINEMAN_msgid;
-	
 	int rand_res;
 	int min = 0,max=100;
 
@@ -77,6 +76,7 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 	
+	//creating the queues
 	NEWC_msgid = msgget(newCustomerKey,0644 | IPC_CREAT);
 	//printf("message id is %d\n",NEWC_msgid);
 	if (NEWC_msgid == -1){
@@ -115,16 +115,17 @@ int main() {
 	fgets(m.word,MAX_SIZE,stdin);*/
 	while (1){
 		initrand();
-	 	rand_res = urand(min,max);
+		
+		rand_res = urand(min,max);
 		printf("%d\n",rand_res);
 		if(rand_res <= POP_NEW){
-		    //new customer
-		    printf("new customer\n");
-	    }
+			//new customer
+			printf("new customer\n");
+		}
 		if(rand_res > POP_NEW && rand_res <= POP_REPAIR){
-		    //upgrade
-		    printf("upgrade customer\n");
-	    }
+			//upgrade
+			printf("upgrade customer\n");
+		}
 		if(rand_res > POP_REPAIR){
 			//repair
 			printf("repair customer\n");
@@ -137,7 +138,7 @@ int main() {
 		}
 	}
 	
-	clear_msg_queue(NEWC_msgid,REPAIR_msgid,UPGRADE_msgid,LINEMAN_msgid,QUIT_msgid);
+	
 	printf("reached here bitch\n");
 	return 0;
 }
@@ -170,9 +171,6 @@ void rcv_message(Customer c,int msgid){
 	}
 }
 
-void customer_entery(){
-
-}
 
 void clear_msg_queue(int newc_msgid,int repair_msgid,int upgrade_msgid,int lineman_msgid, int quit_msgid){
 	//close all the message queues that has created
@@ -197,7 +195,11 @@ void clear_msg_queue(int newc_msgid,int repair_msgid,int upgrade_msgid,int linem
 		exit(EXIT_FAILURE);
 	}
 }
-
+void sig_handler(int signum){
+	clear_msg_queue(NEWC_msgid,REPAIR_msgid,UPGRADE_msgid,LINEMAN_msgid,QUIT_msgid);
+	//Return type of the handler function should be void
+	printf("\nInside handler function\n");
+}
 /*
 int rand_type(){
 	initrand();
