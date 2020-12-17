@@ -28,6 +28,7 @@
 
 void send_message(Customer m,int msgid);
 void rcv_message(Customer m,int msgid);
+void customer_entery();
 int rand_type();
 void clear_msg_queue(int newc_msgid,int repair_msgid,int upgrade_msgid,int lineman_msgid, int quit_msgid);
 
@@ -77,32 +78,57 @@ int main() {
 	}
 	
 	NEWC_msgid = msgget(newCustomerKey,0644 | IPC_CREAT);
-	printf("message id is %d\n",NEWC_msgid);
+	//printf("message id is %d\n",NEWC_msgid);
 	if (NEWC_msgid == -1){
-		perror("msgid\n");
+		perror("NEWC_msgid\n");
+		exit(EXIT_FAILURE);
+	}
+	LINEMAN_msgid = msgget(lineManagerKey,0644 | IPC_CREAT);
+	//printf("message id is %d\n",NEWC_msgid);
+	if (LINEMAN_msgid == -1){
+		perror("LINEMAN_msgid\n");
+		exit(EXIT_FAILURE);
+	}
+	REPAIR_msgid = msgget(repairKey,0644 | IPC_CREAT);
+	//printf("message id is %d\n",NEWC_msgid);
+	if (REPAIR_msgid == -1){
+		perror("REPAIR_msgid\n");
+		exit(EXIT_FAILURE);
+	}
+	UPGRADE_msgid = msgget(upgradeKey,0644 | IPC_CREAT);
+	//printf("message id is %d\n",NEWC_msgid);
+	if (UPGRADE_msgid == -1){
+		perror("UPGRADE_msgid\n");
+		exit(EXIT_FAILURE);
+	}
+	QUIT_msgid = msgget(quitKey,0644 | IPC_CREAT);
+	//printf("message id is %d\n",NEWC_msgid);
+	if (QUIT_msgid == -1){
+		perror("QUIT_msgid\n");
 		exit(EXIT_FAILURE);
 	}
 	
+
 	
 	/*char* line = NULL;
 	ssize_t bufsize = 0; // have getline allocate a buffer for us
 	fgets(m.word,MAX_SIZE,stdin);*/
 	while (1){
 		initrand();
-/*		switch (rand_type) {
-			case TYPE_NEW:{
-				break;
-			}
-			case TYPE_UPGRADE:{
-				break;
-			}
-			case TYPE_REPAIR:{
-				break;
-			}
-		}*/
-	 	//printf("\n");
 	 	rand_res = urand(min,max);
-	 	printf("%d\n",rand_res);
+		printf("%d\n",rand_res);
+		if(rand_res <= POP_NEW){
+		    //new customer
+		    printf("new customer\n");
+	    }
+		if(rand_res > POP_NEW && rand_res <= POP_REPAIR){
+		    //upgrade
+		    printf("upgrade customer\n");
+	    }
+		if(rand_res > POP_REPAIR){
+			//repair
+			printf("repair customer\n");
+		}
 	 	usleep(1000000);
 		//send_message(c,NEWC_msgid);
 		//rcv_message(c,NEWC_msgid);
@@ -111,7 +137,7 @@ int main() {
 		}
 	}
 	
-	//clear_msg_queue(NEWC_msgid,REPAIR_msgid,UPGRADE_msgid,LINEMAN_msgid,QUIT_msgid);
+	clear_msg_queue(NEWC_msgid,REPAIR_msgid,UPGRADE_msgid,LINEMAN_msgid,QUIT_msgid);
 	printf("reached here bitch\n");
 	return 0;
 }
@@ -142,6 +168,10 @@ void rcv_message(Customer c,int msgid){
 		printf(" %ld\n",c.c_id);
 		//usleep(1000);
 	}
+}
+
+void customer_entery(){
+
 }
 
 void clear_msg_queue(int newc_msgid,int repair_msgid,int upgrade_msgid,int lineman_msgid, int quit_msgid){
