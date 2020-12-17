@@ -21,6 +21,7 @@
  *  8.and return to the loop
  */
 #define MAX_SIZE 200
+#define PROJ_ID 17
 typedef struct msg
 {
 	long mtype;
@@ -64,11 +65,40 @@ int main() {
 	message m;
 	m.mtype = 1;
 	
-	key_t myKey = ftok("msgtest",17);
-	if (myKey == -1){
+	//creating the keys
+	key_t  lineManagerKey = ftok("lineManager",PROJ_ID); //key for new customer queue
+	if (lineManagerKey == -1){
+		perror("lineManagerKey\n");
+		exit(EXIT_FAILURE);
+	}
+	key_t  newCustomerKey = ftok("newCustomer",PROJ_ID); //key for new customer queue
+	if (newCustomerKey == -1){
 		perror("key\n");
 		exit(EXIT_FAILURE);
 	}
+	key_t  upgradeKey = ftok("upgrade",PROJ_ID); // key for upgrade customer queue
+	if (upgradeKey == -1){
+		perror("key\n");
+		exit(EXIT_FAILURE);
+	}
+	key_t  repairKey = ftok("repair",PROJ_ID); // key for repair customer queue
+	if (repairKey == -1){
+		perror("key\n");
+		exit(EXIT_FAILURE);
+	}
+	key_t  quitKey = ftok("quit",PROJ_ID); // key for quit from program queue
+	if (quitKey == -1){
+		perror("key\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	int msgid = msgget(myKey,0644 | IPC_CREAT);
 	if (msgid == -1){
