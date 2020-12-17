@@ -33,12 +33,15 @@ void clear_msg_queue(int newc_msgid,int repair_msgid,int upgrade_msgid,int linem
 
 int main() {
 
-
+	srand(time(NULL));
+	//messages ids
 	int NEWC_msgid;
 	int UPGRADE_msgid;
 	int REPAIR_msgid;
 	int QUIT_msgid;
 	int LINEMAN_msgid;
+	
+	int rand_type;
 	
 	Customer c;
 	
@@ -82,11 +85,22 @@ int main() {
 	ssize_t bufsize = 0; // have getline allocate a buffer for us
 	fgets(m.word,MAX_SIZE,stdin);*/
 	while (1){
-		c.c_id = urand(TYPE_NEW,TYPE_REPAIR);
+		rand_type = rand()%3;
+		switch (rand_type) {
+			case TYPE_NEW:{
+				break;
+			}
+			case TYPE_UPGRADE:{
+				break;
+			}
+			case TYPE_REPAIR:{
+				break;
+			}
+		}
 	 	//printf("\n");
-	 	
-		send_message(c,NEWC_msgid);
-		rcv_message(c,NEWC_msgid);
+	 	//printf("%ld\n",c.c_id);
+		//send_message(c,NEWC_msgid);
+		//rcv_message(c,NEWC_msgid);
 		if (c.c_id == TYPE_QUIT){
 			break;
 		}
@@ -103,23 +117,25 @@ void send_message(Customer c,int msgid){
 	pid_t pid;
 	pid = fork();
 	if (pid == 0) {
-		if (msgsnd(msgid, &c, sizeof(Customer), 0) == -1) {
+		if (msgsnd(msgid, &c, sizeof(c.c_data), 0) == -1) {
 			perror("send msg\n");
 			exit(EXIT_FAILURE);
 		}
 	}
+	
 }
 
 void rcv_message(Customer c,int msgid){
 	pid_t pid;
 	pid = fork();
 	if (pid == 0) {
-		if (msgrcv(msgid, &c, sizeof(Customer),c.c_id, 0) == -1) {
+		if (msgrcv(msgid, &c, sizeof(c.c_data),c.c_id,0 ) == -1) {
 			perror("rcv msg\n");
 			exit(EXIT_FAILURE);
 		}
 		printf("the message received is :\n");
-		printf(" %d\n",c.c_id);
+		printf(" %ld\n",c.c_id);
+		//usleep(1000);
 	}
 }
 
