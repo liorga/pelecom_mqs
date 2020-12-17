@@ -67,6 +67,6 @@ typedef struct customer
 {
 	long  c_id;
 	data  c_data;
-} customer;
+} Customer;
 
 #endif //PELECOM_MQS_PELECOM_H

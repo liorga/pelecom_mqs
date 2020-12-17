@@ -23,15 +23,11 @@
  */
 #define MAX_SIZE 200
 #define PROJ_ID 17
-typedef struct msg
-{
-	long mtype;
-	char word[MAX_SIZE];
-} message;
 
 
-void send_message(message m,int msgid);
-void rcv_message(message m,int msgid);
+
+void send_message(Customer m,int msgid);
+void rcv_message(Customer m,int msgid);
 void clear_msg_queue(int newc_msgid,int repair_msgid,int upgrade_msgid,int lineman_msgid, int quit_msgid);
 
 
@@ -44,8 +40,8 @@ int main() {
 	int QUIT_msgid;
 	int LINEMAN_msgid;
 	
-	message m;
-	m.mtype = 1;
+	Customer c;
+	
 	
 	//creating the keys
 	key_t  lineManagerKey = ftok("lineManager",PROJ_ID); //key for new customer queue
@@ -82,12 +78,18 @@ int main() {
 	}
 	
 	
-	char* line = NULL;
+	/*char* line = NULL;
 	ssize_t bufsize = 0; // have getline allocate a buffer for us
-	 while (fgets(m.word,MAX_SIZE,stdin)){
-	 	printf("\n");
-		send_message(m,NEWC_msgid);
-		rcv_message(m,NEWC_msgid);
+	fgets(m.word,MAX_SIZE,stdin);*/
+	while (1){
+		c.c_id = urand(TYPE_NEW,TYPE_REPAIR);
+	 	//printf("\n");
+	 	
+		send_message(c,NEWC_msgid);
+		rcv_message(c,NEWC_msgid);
+		if (c.c_id == TYPE_QUIT){
+			break;
+		}
 	}
 	
 	clear_msg_queue(NEWC_msgid,REPAIR_msgid,UPGRADE_msgid,LINEMAN_msgid,QUIT_msgid);
@@ -97,27 +99,27 @@ int main() {
 
 
 
-void send_message(message m,int msgid){
+void send_message(Customer c,int msgid){
 	pid_t pid;
 	pid = fork();
 	if (pid == 0) {
-		if (msgsnd(msgid, &m, sizeof(message), 0) == -1) {
+		if (msgsnd(msgid, &c, sizeof(Customer), 0) == -1) {
 			perror("send msg\n");
 			exit(EXIT_FAILURE);
 		}
 	}
 }
 
-void rcv_message(message m,int msgid){
+void rcv_message(Customer c,int msgid){
 	pid_t pid;
 	pid = fork();
 	if (pid == 0) {
-		if (msgrcv(msgid, &m, sizeof(message),m.mtype, 0) == -1) {
+		if (msgrcv(msgid, &c, sizeof(Customer),c.c_id, 0) == -1) {
 			perror("rcv msg\n");
 			exit(EXIT_FAILURE);
 		}
 		printf("the message received is :\n");
-		printf(" %s\n",m.word);
+		printf(" %d\n",c.c_id);
 	}
 }
 
