@@ -32,12 +32,7 @@ void customer_entery();
 int rand_type();
 void sig_handler(int signum);
 void clear_msg_queue(int newc_msgid,int repair_msgid,int upgrade_msgid,int lineman_msgid, int quit_msgid);
-//messages ids
-int NEWC_msgid;
-int UPGRADE_msgid;
-int REPAIR_msgid;
-int QUIT_msgid;
-int LINEMAN_msgid;
+
 
 int main() {
 	signal(SIGINT,sig_handler); // Register signal handler
@@ -46,7 +41,7 @@ int main() {
 	int rand_res;
 	int min = 0,max=100;
 
-	Customer c;
+	
 	
 	
 	//creating the keys
@@ -113,26 +108,44 @@ int main() {
 	/*char* line = NULL;
 	ssize_t bufsize = 0; // have getline allocate a buffer for us
 	fgets(m.word,MAX_SIZE,stdin);*/
-	while (1){
+	int n = 5;
+	while (n > 0){
 		initrand();
 		
 		rand_res = urand(min,max);
+		usleep(1000000);
 		printf("%d\n",rand_res);
 		if(rand_res <= POP_NEW){
 			//new customer
 			printf("new customer\n");
+			c.c_id = TYPE_NEW;
+			c.c_data.type = TYPE_NEW;
+			if (msgsnd(LINEMAN_msgid, &c, sizeof(c.c_data), 0) == -1) {
+				perror("send msg\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 		if(rand_res > POP_NEW && rand_res <= POP_REPAIR){
 			//upgrade
 			printf("upgrade customer\n");
+			c.c_id = TYPE_UPGRADE;
+			c.c_data.type = TYPE_UPGRADE;
+			if (msgsnd(LINEMAN_msgid, &c, sizeof(c.c_data), 0) == -1) {
+				perror("send msg\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 		if(rand_res > POP_REPAIR){
 			//repair
 			printf("repair customer\n");
+			c.c_id = TYPE_REPAIR;
+			c.c_data.type = TYPE_REPAIR;
+			if (msgsnd(LINEMAN_msgid, &c, sizeof(c.c_data), 0) == -1) {
+				perror("send msg\n");
+				exit(EXIT_FAILURE);
+			}
 		}
-	 	usleep(1000000);
-		//send_message(c,NEWC_msgid);
-		//rcv_message(c,NEWC_msgid);
+
 		if (c.c_id == TYPE_QUIT){
 			break;
 		}
@@ -145,6 +158,7 @@ int main() {
 
 
 
+/*
 void send_message(Customer c,int msgid){
 	pid_t pid;
 	pid = fork();
@@ -156,7 +170,9 @@ void send_message(Customer c,int msgid){
 	}
 	
 }
+*/
 
+/*
 void rcv_message(Customer c,int msgid){
 	pid_t pid;
 	pid = fork();
@@ -167,9 +183,10 @@ void rcv_message(Customer c,int msgid){
 		}
 		printf("the message received is :\n");
 		printf(" %ld\n",c.c_id);
-		//usleep(1000);
 	}
+	usleep(1000000);
 }
+*/
 
 
 void clear_msg_queue(int newc_msgid,int repair_msgid,int upgrade_msgid,int lineman_msgid, int quit_msgid){
@@ -199,6 +216,7 @@ void sig_handler(int signum){
 	clear_msg_queue(NEWC_msgid,REPAIR_msgid,UPGRADE_msgid,LINEMAN_msgid,QUIT_msgid);
 	//Return type of the handler function should be void
 	printf("\nInside handler function\n");
+	exit(EXIT_FAILURE);
 }
 /*
 int rand_type(){
