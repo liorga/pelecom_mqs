@@ -63,7 +63,7 @@ typedef struct data
 } data;
 
 
-typedef struct
+typedef struct customer
 {
 	long  c_id;
 	data  c_data;
