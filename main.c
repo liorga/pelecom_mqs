@@ -73,22 +73,22 @@ int main() {
 	}
 	key_t  newCustomerKey = ftok("newCustomer",PROJ_ID); //key for new customer queue
 	if (newCustomerKey == -1){
-		perror("key\n");
+		perror("newCustomerKey\n");
 		exit(EXIT_FAILURE);
 	}
 	key_t  upgradeKey = ftok("upgrade",PROJ_ID); // key for upgrade customer queue
 	if (upgradeKey == -1){
-		perror("key\n");
+		perror("upgradeKey\n");
 		exit(EXIT_FAILURE);
 	}
 	key_t  repairKey = ftok("repair",PROJ_ID); // key for repair customer queue
 	if (repairKey == -1){
-		perror("key\n");
+		perror("repairKey\n");
 		exit(EXIT_FAILURE);
 	}
 	key_t  quitKey = ftok("quit",PROJ_ID); // key for quit from program queue
 	if (quitKey == -1){
-		perror("key\n");
+		perror("quitKey\n");
 		exit(EXIT_FAILURE);
 	}
 	
