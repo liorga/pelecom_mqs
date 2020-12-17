@@ -28,12 +28,14 @@
 
 void send_message(Customer m,int msgid);
 void rcv_message(Customer m,int msgid);
+int rand_type();
 void clear_msg_queue(int newc_msgid,int repair_msgid,int upgrade_msgid,int lineman_msgid, int quit_msgid);
 
 
 int main() {
 
-	srand(time(NULL));
+	//srand(time(NULL));
+	initrand();//put in all func that usr rand for better randomization
 	//messages ids
 	int NEWC_msgid;
 	int UPGRADE_msgid;
@@ -41,8 +43,9 @@ int main() {
 	int QUIT_msgid;
 	int LINEMAN_msgid;
 	
-	int rand_type;
-	
+	int rand_res;
+	int min = 0,max=100;
+
 	Customer c;
 	
 	
@@ -85,8 +88,8 @@ int main() {
 	ssize_t bufsize = 0; // have getline allocate a buffer for us
 	fgets(m.word,MAX_SIZE,stdin);*/
 	while (1){
-		rand_type = rand()%3;
-		switch (rand_type) {
+		initrand();
+/*		switch (rand_type) {
 			case TYPE_NEW:{
 				break;
 			}
@@ -96,9 +99,11 @@ int main() {
 			case TYPE_REPAIR:{
 				break;
 			}
-		}
+		}*/
 	 	//printf("\n");
-	 	//printf("%ld\n",c.c_id);
+	 	rand_res = urand(min,max);
+	 	printf("%d\n",rand_res);
+	 	usleep(1000000);
 		//send_message(c,NEWC_msgid);
 		//rcv_message(c,NEWC_msgid);
 		if (c.c_id == TYPE_QUIT){
@@ -106,7 +111,7 @@ int main() {
 		}
 	}
 	
-	clear_msg_queue(NEWC_msgid,REPAIR_msgid,UPGRADE_msgid,LINEMAN_msgid,QUIT_msgid);
+	//clear_msg_queue(NEWC_msgid,REPAIR_msgid,UPGRADE_msgid,LINEMAN_msgid,QUIT_msgid);
 	printf("reached here bitch\n");
 	return 0;
 }
@@ -162,3 +167,9 @@ void clear_msg_queue(int newc_msgid,int repair_msgid,int upgrade_msgid,int linem
 		exit(EXIT_FAILURE);
 	}
 }
+
+/*
+int rand_type(){
+	initrand();
+	return (rand()%100) + 1;
+}*/

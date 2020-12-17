@@ -78,6 +78,7 @@ double pnrand( double avg, double std, double min )
  */
 double urand( double min, double max )
 {
+	initrand();
 	return( min + urand01() * ( max - min ) );
 }
 
@@ -90,7 +91,10 @@ double urand01()
 	return( rand() + 1.0 ) / ( RAND_MAX + 1.0 );
 }
 
-
+/**
+ * send an int* to the func to get the avg std min
+ * remove all the argc argv from this func
+ */
 int test_random( int argc, char *argv[] )
 {
 	int i;
