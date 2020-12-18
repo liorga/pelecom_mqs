@@ -12,7 +12,30 @@
 #include "random.h"
 #include "pelecom.h"
 #include "stopwatch.h"
-
-void main(){
-
+#define PROJ_ID 17
+int main(){
+	key_t key;
+	int msgid;
+	Customer c;
+	c.c_id = 1;
+	
+	key = ftok("sort", PROJ_ID);
+	if(key == -1){
+		perror("key failed\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	msgid = msgget(key, 0666 | IPC_CREAT);
+	if(msgid == -1){
+		perror("msg send failed\n");
+		exit(EXIT_FAILURE);
+	}
+	int i;
+	for (i = 0; i < 5 ; ++i) {
+		if (msgrcv(msgid,&c,sizeof(c),1,0) == -1 ){
+			perror("mgs sent failed\n");
+			exit(EXIT_FAILURE);
+		}
+		printf("the customer number received is: %d\n",c.c_data.type);
+	}
 }
