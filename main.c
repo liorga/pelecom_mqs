@@ -118,9 +118,9 @@ int main() {
 		if(rand_res <= POP_NEW){
 			//new customer
 			printf("new customer\n");
-			c.c_id = TYPE_NEW;
+			c.c_id = 1;
 			c.c_data.type = TYPE_NEW;
-			if (msgsnd(LINEMAN_msgid, &c, sizeof(Customer), 0) == -1) {
+			if (msgsnd(LINEMAN_msgid, &c, sizeof(c.c_data), 0) == -1) {
 				perror("send msg\n");
 				exit(EXIT_FAILURE);
 			}
@@ -128,9 +128,9 @@ int main() {
 		if(rand_res > POP_NEW && rand_res <= POP_REPAIR){
 			//upgrade
 			printf("upgrade customer\n");
-			c.c_id = TYPE_UPGRADE;
+			c.c_id = 1;
 			c.c_data.type = TYPE_UPGRADE;
-			if (msgsnd(LINEMAN_msgid, &c, sizeof(Customer), 0) == -1) {
+			if (msgsnd(LINEMAN_msgid, &c, sizeof(c.c_data), 0) == -1) {
 				perror("send msg\n");
 				exit(EXIT_FAILURE);
 			}
@@ -138,9 +138,9 @@ int main() {
 		if(rand_res > POP_REPAIR){
 			//repair
 			printf("repair customer\n");
-			c.c_id = TYPE_REPAIR;
+			c.c_id = 1;
 			c.c_data.type = TYPE_REPAIR;
-			if (msgsnd(LINEMAN_msgid, &c, sizeof(c.c_dat), 0) == -1) {
+			if (msgsnd(LINEMAN_msgid, &c, sizeof(c.c_data), 0) == -1) {
 				perror("send msg\n");
 				exit(EXIT_FAILURE);
 			}
