@@ -120,7 +120,7 @@ int main() {
 			printf("new customer\n");
 			c.c_id = TYPE_NEW;
 			c.c_data.type = TYPE_NEW;
-			if (msgsnd(LINEMAN_msgid, &c, sizeof(c.c_data), 0) == -1) {
+			if (msgsnd(LINEMAN_msgid, &c, sizeof(Customer), 0) == -1) {
 				perror("send msg\n");
 				exit(EXIT_FAILURE);
 			}
@@ -130,7 +130,7 @@ int main() {
 			printf("upgrade customer\n");
 			c.c_id = TYPE_UPGRADE;
 			c.c_data.type = TYPE_UPGRADE;
-			if (msgsnd(LINEMAN_msgid, &c, sizeof(c.c_data), 0) == -1) {
+			if (msgsnd(LINEMAN_msgid, &c, sizeof(Customer), 0) == -1) {
 				perror("send msg\n");
 				exit(EXIT_FAILURE);
 			}
@@ -140,7 +140,7 @@ int main() {
 			printf("repair customer\n");
 			c.c_id = TYPE_REPAIR;
 			c.c_data.type = TYPE_REPAIR;
-			if (msgsnd(LINEMAN_msgid, &c, sizeof(c.c_data), 0) == -1) {
+			if (msgsnd(LINEMAN_msgid, &c, sizeof(c.c_dat), 0) == -1) {
 				perror("send msg\n");
 				exit(EXIT_FAILURE);
 			}
@@ -149,6 +149,7 @@ int main() {
 		if (c.c_id == TYPE_QUIT){
 			break;
 		}
+		n--;
 	}
 	
 	

@@ -13,12 +13,11 @@
 #include "pelecom.h"
 #include "stopwatch.h"
 
-int main(){
+void main(){
 	if (msgrcv(LINEMAN_msgid, &c, sizeof(c.c_data),c.c_id,0 ) == -1) {
 		perror("rcv msg\n");
 		exit(EXIT_FAILURE);
 	}
 	printf("the message received is :\n");
 	printf(" %ld\n",c.c_id);
-	return 0;
 }
