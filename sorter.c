@@ -36,6 +36,11 @@ int main(){
 			perror("mgs sent failed\n");
 			exit(EXIT_FAILURE);
 		}
-		printf("the customer number received is: %d\n",c.c_data.type);
+		if (c.c_data.type == TYPE_QUIT){
+			printf("quit has received\n");
+			exit(EXIT_FAILURE);
+		} else {
+			printf("the customer number received is: %d\n", c.c_data.type);
+		}
 	}
 }
