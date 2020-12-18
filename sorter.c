@@ -30,8 +30,8 @@ int main(){
 		perror("msg send failed\n");
 		exit(EXIT_FAILURE);
 	}
-	int i;
-	for (i = 0; i < 5 ; ++i) {
+	int i,res;
+	while(res != -1){
 		if (msgrcv(msgid,&c,sizeof(c),1,0) == -1 ){
 			perror("mgs sent failed\n");
 			exit(EXIT_FAILURE);

@@ -28,20 +28,22 @@ int main(int argc ,char* argv[]){
 		perror("msg send failed\n");
 		exit(EXIT_FAILURE);
 	}
-	int i;
-	for (i = 0; i < 5 ; ++i) {
+	int i = 1;
+	while (i < 10){
 		if (msgsnd(msgid, &c, sizeof(c), 0) == -1){
 			perror("fuck you\n");
 			exit(EXIT_FAILURE);
 		}
-		c.c_data.type = i+1;
+		pid_t pid;
+		pid = fork();
+		if (pid == 0){
+			char *args[]={"sorter",NULL};
+			execv(args[0],args);
+		}
+		c.c_data.type = i;
+		i++;
 	}
-	pid_t pid;
-	pid = fork();
-	if (pid == 0){
-		char *args[]={"sorter",NULL};
-		execv(args[0],args);
-	}
+
 	
 	
 	return 0;
