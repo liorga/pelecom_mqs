@@ -48,12 +48,6 @@
 #define SPRD_SORT       10000	// customer came to the center to do
 #define MIN_SORT        5000
 
-//messages ids
-int NEWC_msgid;
-int UPGRADE_msgid;
-int REPAIR_msgid;
-int QUIT_msgid;
-int LINEMAN_msgid;
 
 /*
  * Customer - structure of the messages on the queues
@@ -75,6 +69,6 @@ typedef struct customer
 	data  c_data;
 } Customer;
 
-Customer c;
+
 
 #endif //PELECOM_MQS_PELECOM_H
