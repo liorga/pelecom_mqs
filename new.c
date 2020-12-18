@@ -1,7 +1,6 @@
 //
-// Created by lior on 17/12/2020.
+// Created by lior on 18/12/2020.
 //
-
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
@@ -14,35 +13,36 @@
 #include "pelecom.h"
 #include "stopwatch.h"
 
+
 #define PROJ_ID 17
 
 int main(){
 	Customer c;
-	key_t key_repair;
-	int msgid_repair;
-	key_repair = ftok("repair", PROJ_ID);
-	if(key_repair == -1){
-		perror("key_repair1 failed\n");
+	key_t key_new;
+	int msgid_new;
+	key_new = ftok("newCustomer", PROJ_ID);
+	if(key_new == -1){
+		perror("key_new1 failed\n");
 		exit(EXIT_FAILURE);
 	}
 	
-	msgid_repair = msgget(key_repair, 0666 | IPC_CREAT);
-	if(msgid_repair == -1){
-		perror("msg_repair send1 failed\n");
+	msgid_new = msgget(key_new, 0666 | IPC_CREAT);
+	if(msgid_new == -1){
+		perror("msg_new send1 failed\n");
 		exit(EXIT_FAILURE);
 	}
 	int i = 0;
 	ssize_t res = 0;
 	while(i < 10){
-		if (res = msgrcv(msgid_repair,&c,sizeof(c),1,0) == -1){
-			perror("mgs sent2 failed\n");
+		if (res = msgrcv(msgid_new,&c,sizeof(c),1,0) == -1){
+			perror("mgs sent3 failed\n");
 			exit(EXIT_FAILURE);
 		}
-		printf("repair customer received is: %d\n", c.c_data.type);
+		printf("new customer received is: %d\n", c.c_data.type);
 		usleep(1000000);
 		i++;
 	}
-	if (msgctl(msgid_repair,IPC_RMID,NULL) == -1){
+	if (msgctl(msgid_new,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);
 	}

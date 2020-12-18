@@ -13,3 +13,31 @@
 #include "random.h"
 #include "pelecom.h"
 #include "stopwatch.h"
+#define PROJ_ID 17
+
+int main(){
+	
+	key_t key;
+	int msgid;
+	Customer c;
+	c.c_id = 1;
+	c.c_data.type = TYPE_QUIT;
+	key = ftok("quit", PROJ_ID);
+	if(key == -1){
+		perror("key failed\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	msgid = msgget(key, 0666 | IPC_CREAT);
+	if(msgid == -1){
+		perror("msg send failed\n");
+		exit(EXIT_FAILURE);
+	}
+	if (msgsnd(msgid, &c, sizeof(c), 0) == -1){
+		perror("fuck you\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	
+	return 0;
+}
