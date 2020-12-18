@@ -69,15 +69,16 @@ int main(){
 		perror("msg_repair send failed\n");
 		exit(EXIT_FAILURE);
 	}
-	int i;
+	int i = 0;
 	ssize_t res = 0;
-	while(res != -1){
+	while(i < 10){
+		
 		if (res = msgrcv(msgid,&c,sizeof(c),1,0) == -1){
 			perror("mgs sent failed\n");
 			exit(EXIT_FAILURE);
 		}
 		//printf("the customer number received is: %d\n", c.c_data.type);
-		
+		usleep(1000000);
 		if (c.c_data.type == TYPE_NEW){
 			//printf("new customer\n");
 			if (msgsnd(msgid_new, &c, sizeof(c), 0) == -1){
@@ -99,6 +100,7 @@ int main(){
 				exit(EXIT_FAILURE);
 			}
 		}
+		i++;
 	}
 	
 	if (msgctl(msgid,IPC_RMID,NULL) == -1){

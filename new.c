@@ -31,15 +31,16 @@ int main(){
 		perror("msg_new send1 failed\n");
 		exit(EXIT_FAILURE);
 	}
-	
+	int i = 0;
 	ssize_t res = 0;
-	while(res != -1){
+	while(i < 10){
 		if (res = msgrcv(msgid_new,&c,sizeof(c),1,0) == -1){
 			perror("mgs sent3 failed\n");
 			exit(EXIT_FAILURE);
 		}
 		printf("new customer received is: %d\n", c.c_data.type);
-		
+		usleep(1000000);
+		i++;
 	}
 	if (msgctl(msgid_new,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
