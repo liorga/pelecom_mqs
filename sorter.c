@@ -9,6 +9,7 @@
 #include <string.h>
 #include <resolv.h>
 #include <errno.h>
+#include <sys/wait.h>
 #include "random.h"
 #include "pelecom.h"
 #include "stopwatch.h"
@@ -23,6 +24,7 @@ int main(){
 	int msgid_repair;
 	int msgid_new;
 	Customer c;
+	int status;
 	//c.c_id = 1;
 	
 	key = ftok("sort", PROJ_ID);
@@ -86,15 +88,34 @@ int main(){
 		execv(args[0],args);
 	}
 	int i = 0;
+	int flag = 1;
 	ssize_t res = 0;
-	while(i < 10){
+	while(flag){
 		
 		if (res = msgrcv(msgid,&c,sizeof(c),1,0) == -1){
 			perror("mgs sent failed\n");
 			exit(EXIT_FAILURE);
 		}
+		
+		
 		//printf("the customer number received is: %d\n", c.c_data.type);
 		usleep(1000000);
+		if(c.c_data.type == TYPE_QUIT){
+			if (msgsnd(msgid_new, &c, sizeof(c), 0) == -1){
+				perror("new snd\n");
+				exit(EXIT_FAILURE);
+			}
+			if (msgsnd(msgid_upgrade, &c, sizeof(c), 0) == -1){
+				perror("upgrade snd\n");
+				exit(EXIT_FAILURE);
+			}
+			if (msgsnd(msgid_repair, &c, sizeof(c), 0) == -1){
+				perror("repair snd\n");
+				exit(EXIT_FAILURE);
+			}
+			flag = 0;
+			continue;
+		}
 		if (c.c_data.type == TYPE_NEW){
 			//printf("new customer\n");
 			if (msgsnd(msgid_new, &c, sizeof(c), 0) == -1){
@@ -119,10 +140,12 @@ int main(){
 		i++;
 	}
 	
-/*	if (msgctl(msgid,IPC_RMID,NULL) == -1){
+	//wait(&status);
+	
+	if (msgctl(msgid,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);
-	}*/
+	}
 /*	if (msgctl(msgid_new,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);

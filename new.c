@@ -32,11 +32,17 @@ int main(){
 		exit(EXIT_FAILURE);
 	}
 	int i = 0;
+	int flag =1;
 	ssize_t res = 0;
-	while(i < 10){
+	while(flag){
 		if (res = msgrcv(msgid_new,&c,sizeof(c),1,0) == -1){
 			perror("mgs sent3 failed\n");
 			exit(EXIT_FAILURE);
+		}
+		if (c.c_data.type == TYPE_QUIT){
+			printf("quit arrived to new\n");
+			flag = 0;
+			continue;
 		}
 		printf("new customer received is: %d\n", c.c_data.type);
 		usleep(1000000);
