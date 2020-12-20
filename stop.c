@@ -37,7 +37,7 @@ int main(){
 		perror("fuck you\n");
 		exit(EXIT_FAILURE);
 	}
-	
+	printf("quit has sended to to main process\n");
 	
 	return 0;
 }

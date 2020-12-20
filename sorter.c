@@ -101,6 +101,7 @@ int main(){
 		//printf("the customer number received is: %d\n", c.c_data.type);
 		usleep(1000000);
 		if(c.c_data.type == TYPE_QUIT){
+			printf("im here with quit\n");
 			if (msgsnd(msgid_new, &c, sizeof(c), 0) == -1){
 				perror("new snd\n");
 				exit(EXIT_FAILURE);
@@ -140,7 +141,9 @@ int main(){
 		i++;
 	}
 	
-	//wait(&status);
+	waitpid(pid,&status,0);
+	waitpid(pid1,&status,0);
+	waitpid(pid2,&status,0);
 	
 	if (msgctl(msgid,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");

@@ -43,7 +43,7 @@ int main(int argc ,char* argv[]){
 		exit(EXIT_FAILURE);
 	}
 	
-	msgid_quit = msgget(key, 0666 | IPC_CREAT);
+	msgid_quit = msgget(keyQuit, 0666 | IPC_CREAT);
 	if(msgid_quit == -1){
 		perror("msg send failed\n");
 		exit(EXIT_FAILURE);
@@ -65,30 +65,37 @@ int main(int argc ,char* argv[]){
 
 
 	while (flag){
-		flag = quit_action(msgid_quit,msgid);
 		
-		rand_res = urand(min,max);
-		if (rand_res <= POP_NEW){
-			c.c_data.type = TYPE_NEW;
-		}
-		if (rand_res > POP_NEW && rand_res <= POP_REPAIR){
-			c.c_data.type = TYPE_UPGRADE;
-		}
-		if (rand_res > POP_REPAIR){
-			c.c_data.type = TYPE_REPAIR;
-		}
-		if (msgsnd(msgid, &c, sizeof(c), 0) == -1){
-			perror("bla bla\n");
-			exit(EXIT_FAILURE);
+		if(quit_action(msgid_quit,msgid) == 2){
+			flag = 0;
+		} else {
+			rand_res = urand(min, max);
+			if (rand_res <= POP_NEW) {
+				c.c_data.type = TYPE_NEW;
+			}
+			if (rand_res > POP_NEW && rand_res <= POP_REPAIR) {
+				c.c_data.type = TYPE_UPGRADE;
+			}
+			if (rand_res > POP_REPAIR) {
+				c.c_data.type = TYPE_REPAIR;
+			}
+			if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
+				perror("bla bla\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 		
 		//c.c_data.type = i;
 		i++;
 		usleep(1000000);
 	}
-	//wait(&status);
+	wait(&status);
 	
 	if (msgctl(msgid,IPC_RMID,NULL) == -1){
+		perror("clear failed\n");
+		exit(EXIT_FAILURE);
+	}
+	if (msgctl(msgid_quit,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);
 	}
@@ -102,21 +109,22 @@ int quit_action(int msgid_quit,int msgid){
 	
 	if (msgrcv(msgid_quit, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
 		if (errno == ENOMSG) {
-			printf("No New Messages\n");
+			//printf("No New Messages\n");
 			return 1;
 		}
-	} else{
-		if(c.c_data.type == TYPE_QUIT) {
-			if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
-				perror("fuck you\n");
-				exit(EXIT_FAILURE);
-			}
-			printf("quit has arrived\n");
-			c.c_data.type = TYPE_QUIT;
-			return 0;
-			
-		}
 	}
+	printf("data num is %d\n",c.c_data.type);
+	if(c.c_data.type == TYPE_QUIT) {
+		printf("i got quit to send to sorter\n");
+		if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
+			perror("fuck you\n");
+			exit(EXIT_FAILURE);
+		}
+		printf("quit has arrived\n");
+		//c.c_data.type = TYPE_QUIT;
+		return 2;
+	}
+	
 	return 1;
 }
 
