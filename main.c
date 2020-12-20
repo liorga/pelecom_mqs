@@ -56,7 +56,13 @@ int main(int argc ,char* argv[]){
 	}
 	
 	
-	
+	pid_t pid;
+	pid = fork();
+	if (pid == 0){
+		char *args[]={"sorter",NULL};
+		execv(args[0],args);
+	}
+
 
 	while (i < 10){
 		//quit_action(msgid_quit,msgid);
@@ -74,27 +80,7 @@ int main(int argc ,char* argv[]){
 			perror("bla bla\n");
 			exit(EXIT_FAILURE);
 		}
-		pid_t pid;
-		pid = fork();
-		if (pid == 0){
-			char *args[]={"sorter",NULL};
-			execv(args[0],args);
-		}
-		pid = fork();
-		if (pid == 0){
-			char *args[]={"cnew",NULL};
-			execv(args[0],args);
-		}
-		pid = fork();
-		if (pid == 0){
-			char *args[]={"cupgrade",NULL};
-			execv(args[0],args);
-		}
-		pid = fork();
-		if (pid == 0){
-			char *args[]={"crepair",NULL};
-			execv(args[0],args);
-		}
+
 		if(flag) { // dont really sure about wait
 			
 			//check if returned -1

@@ -69,6 +69,22 @@ int main(){
 		perror("msg_repair send failed\n");
 		exit(EXIT_FAILURE);
 	}
+	pid_t pid,pid1,pid2;
+	pid = fork();
+	if (pid == 0){
+		char *args[]={"cnew",NULL};
+		execv(args[0],args);
+	}
+	pid1 = fork();
+	if (pid1 == 0){
+		char *args[]={"cupgrade",NULL};
+		execv(args[0],args);
+	}
+	pid2 = fork();
+	if (pid2 == 0){
+		char *args[]={"crepair",NULL};
+		execv(args[0],args);
+	}
 	int i = 0;
 	ssize_t res = 0;
 	while(i < 10){
@@ -103,11 +119,11 @@ int main(){
 		i++;
 	}
 	
-	if (msgctl(msgid,IPC_RMID,NULL) == -1){
+/*	if (msgctl(msgid,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);
-	}
-	if (msgctl(msgid_new,IPC_RMID,NULL) == -1){
+	}*/
+/*	if (msgctl(msgid_new,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);
 	}
@@ -118,5 +134,5 @@ int main(){
 	if (msgctl(msgid_upgrade,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);
-	}
+	}*/
 }
