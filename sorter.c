@@ -92,13 +92,14 @@ int main(){
 	ssize_t res = 0;
 	while(flag){
 		
-		if (res = msgrcv(msgid,&c,sizeof(c),1,0) == -1){
+		if (msgrcv(msgid,&c,sizeof(c),1,0) == -1){
+			printf("%ld\n",c.c_id);
 			perror("mgs sent failed\n");
 			exit(EXIT_FAILURE);
 		}
 		
-		
-		//printf("the customer number received is: %d\n", c.c_data.type);
+		printf("sorter type is: %ld\n",c.c_id);
+		printf("the customer number received is: %d\n", c.c_data.type);
 		usleep(1000000);
 		if(c.c_data.type == TYPE_QUIT){
 			printf("im here with quit\n");
@@ -115,7 +116,6 @@ int main(){
 				exit(EXIT_FAILURE);
 			}
 			flag = 0;
-			continue;
 		}
 		if (c.c_data.type == TYPE_NEW){
 			//printf("new customer\n");

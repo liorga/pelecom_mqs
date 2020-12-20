@@ -12,12 +12,12 @@
 #include "stopwatch.h"
 #define PROJ_ID 17
 
-void sig_handler(int signum);
+//void sig_handler(int signum);
 int quit_action(int msgid_quit,int msgid);
 
 int main(int argc ,char* argv[]){
 	initrand();
-	signal(SIGINT,sig_handler);
+	//signal(SIGINT,sig_handler);
 	key_t key,keyQuit;
 	int msgid,msgid_quit;
 	int i = 0;
@@ -68,6 +68,8 @@ int main(int argc ,char* argv[]){
 		
 		if(quit_action(msgid_quit,msgid) == 2){
 			flag = 0;
+			c.c_id = 2;
+			c.c_data.type = TYPE_QUIT;
 		} else {
 			rand_res = urand(min, max);
 			if (rand_res <= POP_NEW) {
@@ -79,11 +81,13 @@ int main(int argc ,char* argv[]){
 			if (rand_res > POP_REPAIR) {
 				c.c_data.type = TYPE_REPAIR;
 			}
+		}
+		printf("iam herer\n");
 			if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
 				perror("bla bla\n");
 				exit(EXIT_FAILURE);
 			}
-		}
+		
 		
 		//c.c_data.type = i;
 		i++;
@@ -121,14 +125,14 @@ int quit_action(int msgid_quit,int msgid){
 			exit(EXIT_FAILURE);
 		}
 		printf("quit has arrived\n");
-		//c.c_data.type = TYPE_QUIT;
+		c.c_data.type = TYPE_QUIT;
 		return 2;
 	}
 	
 	return 1;
 }
 
-void sig_handler(int signum){
+/*void sig_handler(int signum){
 	printf("inside handler func\n");
 	
 	pid_t pid;
@@ -141,4 +145,4 @@ void sig_handler(int signum){
 	
 	printf("returned\n");
 	
-}
+}*/
