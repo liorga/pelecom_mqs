@@ -93,13 +93,12 @@ int main(){
 	while(flag){
 		
 		if (msgrcv(msgid,&c,sizeof(c),1,0) == -1){
-			printf("%ld\n",c.c_id);
 			perror("mgs sent failed\n");
 			exit(EXIT_FAILURE);
 		}
 		
-		printf("sorter type is: %ld\n",c.c_id);
-		printf("the customer number received is: %d\n", c.c_data.type);
+		
+		//printf("the customer number received is: %d\n", c.c_data.type);
 		usleep(1000000);
 		if(c.c_data.type == TYPE_QUIT){
 			printf("im here with quit\n");

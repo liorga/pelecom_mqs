@@ -82,7 +82,7 @@ int main(int argc ,char* argv[]){
 				c.c_data.type = TYPE_REPAIR;
 			}
 		}
-		printf("iam herer\n");
+		//printf("iam herer\n");
 			if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
 				perror("bla bla\n");
 				exit(EXIT_FAILURE);
@@ -95,12 +95,12 @@ int main(int argc ,char* argv[]){
 	}
 	wait(&status);
 	
-	if (msgctl(msgid,IPC_RMID,NULL) == -1){
+/*	if (msgctl(msgid,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);
-	}
+	}*/
 	if (msgctl(msgid_quit,IPC_RMID,NULL) == -1){
-		perror("clear failed\n");
+		perror("clear failed2\n");
 		exit(EXIT_FAILURE);
 	}
 	
@@ -117,9 +117,9 @@ int quit_action(int msgid_quit,int msgid){
 			return 1;
 		}
 	}
-	printf("data num is %d\n",c.c_data.type);
+	//printf("data num is %d\n",c.c_data.type);
 	if(c.c_data.type == TYPE_QUIT) {
-		printf("i got quit to send to sorter\n");
+		//printf("i got quit to send to sorter\n");
 		if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
 			perror("fuck you\n");
 			exit(EXIT_FAILURE);
