@@ -65,14 +65,16 @@ int main(int argc ,char* argv[]){
 
 
 	while (flag){
-		
 		if(quit_action(msgid_quit,msgid) == 2){
 			flag = 0;
 			c.c_id = 2;
 			c.c_data.type = TYPE_QUIT;
 		} else {
 			rand_res = urand(min, max);
+			///activate swlap() for the entry ttime
+			///pnrand() with arrive data in pelecom.h wait avrg time
 			if (rand_res <= POP_NEW) {
+				///for each type use pelecom header for type procces time
 				c.c_data.type = TYPE_NEW;
 			}
 			if (rand_res > POP_NEW && rand_res <= POP_REPAIR) {
@@ -87,8 +89,8 @@ int main(int argc ,char* argv[]){
 				perror("bla bla\n");
 				exit(EXIT_FAILURE);
 			}
-		
-		
+		///use arrive entry time for sleep
+		///divide before printing data
 		//c.c_data.type = i;
 		i++;
 		usleep(1000000);

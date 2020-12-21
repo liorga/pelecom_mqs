@@ -16,6 +16,7 @@
 #define PROJ_ID 17
 
 int main(){
+	//activete watch
 	Customer c;
 	key_t key_upgrade;
 	int msgid_upgrade;
@@ -38,6 +39,15 @@ int main(){
 			perror("mgs sent1 failed\n");
 			exit(EXIT_FAILURE);
 		}
+		///start time its swlap()
+		///sleep procces time using prand
+		///as wake up using swlap() for exit time
+		///ecit time - entry time = elapsed time
+		///countimg customer ++
+		///work man time total = exit time - start time
+		///wait total = start - entry
+		///then printing
+		///when printing divide by 1000
 		if (c.c_data.type == TYPE_QUIT){
 			printf("quit arrived to upgrade\n");
 			flag = 0;

@@ -82,6 +82,7 @@ int main(){
 		char *args[]={"cupgrade",NULL};
 		execv(args[0],args);
 	}
+	
 	pid2 = fork();
 	if (pid2 == 0){
 		char *args[]={"crepair",NULL};
@@ -96,7 +97,8 @@ int main(){
 			perror("mgs sent failed\n");
 			exit(EXIT_FAILURE);
 		}
-		
+		///sort wait use avg sort from
+		///put to sleep in avg sort time
 		
 		//printf("the customer number received is: %d\n", c.c_data.type);
 		usleep(1000000);
