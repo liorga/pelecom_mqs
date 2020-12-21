@@ -97,7 +97,7 @@ int main(){
 			perror("mgs sent failed\n");
 			exit(EXIT_FAILURE);
 		}
-		///sort wait use avg sort from
+		///sort wait use avg sort from pnrand()
 		///put to sleep in avg sort time
 		
 		//printf("the customer number received is: %d\n", c.c_data.type);

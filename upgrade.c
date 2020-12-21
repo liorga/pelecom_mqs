@@ -35,19 +35,22 @@ int main(){
 	int flag =1;
 	ssize_t res = 0;
 	while(flag){
-		if (res = msgrcv(msgid_upgrade,&c,sizeof(c),1,0) == -1){
+		if (msgrcv(msgid_upgrade,&c,sizeof(c),1,0) == -1){
 			perror("mgs sent1 failed\n");
 			exit(EXIT_FAILURE);
 		}
 		///start time its swlap()
 		///sleep procces time using prand
 		///as wake up using swlap() for exit time
-		///ecit time - entry time = elapsed time
+		
+		
+		///exit time - entry time = elapsed time
 		///countimg customer ++
-		///work man time total = exit time - start time
-		///wait total = start - entry
+		///work man time total += exit time - start time
+		///wait total += start - entry
 		///then printing
 		///when printing divide by 1000
+		
 		if (c.c_data.type == TYPE_QUIT){
 			printf("quit arrived to upgrade\n");
 			flag = 0;
@@ -57,6 +60,8 @@ int main(){
 		usleep(1000000);
 		i++;
 	}
+	
+	
 	if (msgctl(msgid_upgrade,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);

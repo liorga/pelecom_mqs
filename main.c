@@ -18,6 +18,7 @@ int quit_action(int msgid_quit,int msgid);
 int main(int argc ,char* argv[]){
 	initrand();
 	//signal(SIGINT,sig_handler);
+	///start watch
 	key_t key,keyQuit;
 	int msgid,msgid_quit;
 	int i = 0;
@@ -74,7 +75,7 @@ int main(int argc ,char* argv[]){
 			///activate swlap() for the entry ttime
 			///pnrand() with arrive data in pelecom.h wait avrg time
 			if (rand_res <= POP_NEW) {
-				///for each type use pelecom header for type procces time
+				///pnrand() for each type use pelecom header for type procces time
 				c.c_data.type = TYPE_NEW;
 			}
 			if (rand_res > POP_NEW && rand_res <= POP_REPAIR) {
