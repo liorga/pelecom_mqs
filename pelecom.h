@@ -59,6 +59,7 @@ typedef struct data
 	long  start_time;
 	long  exit_time;
 	long  elapse_time;
+	int id;
 } data;
 
 

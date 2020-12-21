@@ -14,21 +14,22 @@
 #define PROJ_ID 17
 
 
+
 int quit_action(int msgid_quit,int msgid);
 
 int main(int argc ,char* argv[]){
 	
 	initrand();
-
+	
 	///start watch
 	key_t key,keyQuit,sharedKey;
 	int msgid,msgid_quit,shmID;
-	int i = 0;
+	int i = 10000;
 	int rand_res;
 	int min =0,max = 100;
 	int flag = 1;
 	int status;
-	
+	int thousand = 1000;
 	Customer c;
 	c.c_id = 1;
 	c.c_data.type = 1;
@@ -49,7 +50,7 @@ int main(int argc ,char* argv[]){
 	
 	sw = (struct stopwatch*)shmat( shmID, NULL, 0 );
 	swstart(sw);
-	printf("the time is now from main %ld\n",sw->tv.tv_sec);
+	//printf("the time is now from main %ld\n",sw->tv.tv_sec);
 	
 	key = ftok("sort", PROJ_ID);
 	if(key == -1){
@@ -84,8 +85,8 @@ int main(int argc ,char* argv[]){
 		char *args[]={"sorter",NULL};
 		execv(args[0],args);
 	}
-
-
+	
+	long wait_time;
 	while (flag){
 		if(quit_action(msgid_quit,msgid) == 2){
 			flag = 0;
@@ -94,28 +95,35 @@ int main(int argc ,char* argv[]){
 		} else {
 			rand_res = urand(min, max);
 			///activate swlap() for the entry ttime
+			c.c_data.enter_time = swlap(sw);
+			c.c_data.id = i;
+			wait_time = pnrand(AVRG_ARRIVE,SPRD_ARRIVE,MIN_ARRIVE)/thousand;
+			usleep(wait_time*thousand);
 			///pnrand() with arrive data in pelecom.h wait avrg time
 			if (rand_res <= POP_NEW) {
 				///pnrand() for each type use pelecom header for type procces time
 				c.c_data.type = TYPE_NEW;
+				c.c_data.process_time = pnrand(AVRG_NEW,SPRD_NEW,MIN_NEW);
 			}
 			if (rand_res > POP_NEW && rand_res <= POP_REPAIR) {
 				c.c_data.type = TYPE_UPGRADE;
+				c.c_data.process_time = pnrand(AVRG_UPGRADE,SPRD_UPGRADE,MIN_UPGRADE);
 			}
 			if (rand_res > POP_REPAIR) {
 				c.c_data.type = TYPE_REPAIR;
+				c.c_data.process_time = pnrand(AVRG_REPAIR,SPRD_REPAIR,MIN_REPAIR);
 			}
 		}
 		//printf("iam herer\n");
-			if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
-				perror("bla bla\n");
-				exit(EXIT_FAILURE);
-			}
+		if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
+			perror("bla bla\n");
+			exit(EXIT_FAILURE);
+		}
 		///use arrive entry time for sleep
 		///divide before printing data
 		
 		i++;
-		usleep(1000000);
+		//usleep(1000000);
 	}
 	wait(&status);
 	

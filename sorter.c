@@ -25,6 +25,7 @@ int main(){
 	int msgid_new;
 	Customer c;
 	int status;
+	int thousand = 1000;
 	//c.c_id = 1;
 	
 	key = ftok("sort", PROJ_ID);
@@ -91,6 +92,7 @@ int main(){
 	int i = 0;
 	int flag = 1;
 	ssize_t res = 0;
+	long wait_time;
 	while(flag){
 		
 		if (msgrcv(msgid,&c,sizeof(c),1,0) == -1){
@@ -99,9 +101,10 @@ int main(){
 		}
 		///sort wait use avg sort from pnrand()
 		///put to sleep in avg sort time
+		wait_time = pnrand(AVRG_SORT,SPRD_SORT,MIN_SORT)/thousand;
+		usleep(wait_time*thousand);
 		
-		//printf("the customer number received is: %d\n", c.c_data.type);
-		usleep(1000000);
+		
 		if(c.c_data.type == TYPE_QUIT){
 			printf("im here with quit\n");
 			if (msgsnd(msgid_new, &c, sizeof(c), 0) == -1){
