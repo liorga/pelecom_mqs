@@ -10,6 +10,7 @@
 #include <string.h>
 #include <resolv.h>
 #include <errno.h>
+#include <sys/shm.h>
 #include "random.h"
 #include "pelecom.h"
 #include "stopwatch.h"
@@ -18,8 +19,25 @@
 
 int main(){
 	Customer c;
-	key_t key_repair;
-	int msgid_repair;
+	struct stopwatch* sw;
+	key_t key_repair,sharedKey;
+	int msgid_repair,shmID;
+	
+	sharedKey = ftok("main.c", PROJ_ID);
+	if(sharedKey == -1){
+		perror("shared key failed\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	shmID = shmget(sharedKey,1024,0644| IPC_CREAT);
+	if(shmID == -1){
+		perror("shared memory failed3\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	sw = (struct stopwatch*)shmat( shmID, NULL, 0 );
+
+	
 	key_repair = ftok("repair", PROJ_ID);
 	if(key_repair == -1){
 		perror("key_repair1 failed\n");
@@ -34,6 +52,7 @@ int main(){
 	int i = 0;
 	int flag =1;
 	ssize_t res = 0;
+	printf("time is now from repair: %ld\n",swlap(sw));
 	while(flag){
 		if (res = msgrcv(msgid_repair,&c,sizeof(c),1,0) == -1){
 			perror("mgs sent2 failed\n");
@@ -48,6 +67,14 @@ int main(){
 		usleep(1000000);
 		i++;
 	}
+	
+	int address;
+	address = shmdt(sw);
+	if (address == -1){
+		perror("shmdt failed\n");
+		exit(EXIT_FAILURE);
+	}
+	
 	if (msgctl(msgid_repair,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);

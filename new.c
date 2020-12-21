@@ -9,6 +9,7 @@
 #include <string.h>
 #include <resolv.h>
 #include <errno.h>
+#include <sys/shm.h>
 #include "random.h"
 #include "pelecom.h"
 #include "stopwatch.h"
@@ -18,8 +19,26 @@
 
 int main(){
 	Customer c;
-	key_t key_new;
-	int msgid_new;
+	struct stopwatch* sw;
+	key_t key_new,sharedKey;
+	int msgid_new,shmID;
+	
+	
+	sharedKey = ftok("main.c", PROJ_ID);
+	if(sharedKey == -1){
+		perror("shared key failed\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	shmID = shmget(sharedKey,1024,0644 | IPC_CREAT);
+	if(shmID == -1){
+		perror("shared memory failed4\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	sw = (struct stopwatch*)shmat( shmID, NULL, 0 );
+	printf("time is now from new : %ld\n",swlap(sw));
+	
 	key_new = ftok("newCustomer", PROJ_ID);
 	if(key_new == -1){
 		perror("key_new1 failed\n");
@@ -48,6 +67,14 @@ int main(){
 		usleep(1000000);
 		i++;
 	}
+	
+	int address;
+	address = shmdt(sw);
+	if (address == -1){
+		perror("shmdt failed\n");
+		exit(EXIT_FAILURE);
+	}
+	
 	if (msgctl(msgid_new,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);

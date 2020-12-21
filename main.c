@@ -10,27 +10,46 @@
 #include "random.h"
 #include "pelecom.h"
 #include "stopwatch.h"
+#include <sys/shm.h>
 #define PROJ_ID 17
 
-//void sig_handler(int signum);
+
 int quit_action(int msgid_quit,int msgid);
 
 int main(int argc ,char* argv[]){
+	
 	initrand();
-	//signal(SIGINT,sig_handler);
+
 	///start watch
-	key_t key,keyQuit;
-	int msgid,msgid_quit;
+	key_t key,keyQuit,sharedKey;
+	int msgid,msgid_quit,shmID;
 	int i = 0;
 	int rand_res;
-	int min =0;
-	int max = 100;
+	int min =0,max = 100;
 	int flag = 1;
-	int wpid;
 	int status;
+	
 	Customer c;
 	c.c_id = 1;
 	c.c_data.type = 1;
+	
+	stopwatch* sw;
+	
+	sharedKey = ftok("main.c", PROJ_ID);
+	if(sharedKey == -1){
+		perror("shared key failed\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	shmID = shmget(sharedKey,1024,0644| IPC_CREAT);
+	if(shmID == -1){
+		perror("shared memory failed1\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	sw = (struct stopwatch*)shmat( shmID, NULL, 0 );
+	swstart(sw);
+	printf("the time is now from main %ld\n",sw->tv.tv_sec);
 	
 	key = ftok("sort", PROJ_ID);
 	if(key == -1){
@@ -43,6 +62,8 @@ int main(int argc ,char* argv[]){
 		perror("key failed\n");
 		exit(EXIT_FAILURE);
 	}
+	
+	
 	
 	msgid_quit = msgget(keyQuit, 0666 | IPC_CREAT);
 	if(msgid_quit == -1){
@@ -92,12 +113,19 @@ int main(int argc ,char* argv[]){
 			}
 		///use arrive entry time for sleep
 		///divide before printing data
-		//c.c_data.type = i;
+		
 		i++;
 		usleep(1000000);
 	}
 	wait(&status);
 	
+	
+	int address;
+	address = shmdt(sw);
+	if (address == -1){
+		perror("shmdt failed\n");
+		exit(EXIT_FAILURE);
+	}
 /*	if (msgctl(msgid,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);
@@ -134,18 +162,3 @@ int quit_action(int msgid_quit,int msgid){
 	
 	return 1;
 }
-
-/*void sig_handler(int signum){
-	printf("inside handler func\n");
-	
-	pid_t pid;
-	pid = fork();
-	
-	if (pid == 0){
-		char *args[]={"stop",NULL};
-		execv(args[0],args);
-	}
-	
-	printf("returned\n");
-	
-}*/
