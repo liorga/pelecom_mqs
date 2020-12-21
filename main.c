@@ -42,7 +42,7 @@ int main(int argc ,char* argv[]){
 		exit(EXIT_FAILURE);
 	}
 	
-	shmID = shmget(sharedKey,1024,0644| IPC_CREAT);
+	shmID = shmget(sharedKey,2048,0644| IPC_CREAT);
 	if(shmID == -1){
 		perror("shared memory failed1\n");
 		exit(EXIT_FAILURE);
@@ -140,6 +140,10 @@ int main(int argc ,char* argv[]){
 	}*/
 	if (msgctl(msgid_quit,IPC_RMID,NULL) == -1){
 		perror("clear failed2\n");
+		exit(EXIT_FAILURE);
+	}
+	if(shmctl(shmID,IPC_RMID,NULL) == -1 ){
+		perror("fuck haraaa\n");
 		exit(EXIT_FAILURE);
 	}
 	
