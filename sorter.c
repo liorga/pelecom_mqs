@@ -146,6 +146,9 @@ int main(){
 	waitpid(pid1,&status,0);
 	waitpid(pid2,&status,0);
 	
+	
+	///
+	
 	if (msgctl(msgid,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);

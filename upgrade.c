@@ -46,11 +46,11 @@ int main(){
 		
 		///exit time - entry time = elapsed time
 		///countimg customer ++
-		///work man time total += exit time - start time
+		///work time total += exit time - start time
 		///wait total += start - entry
 		///then printing
 		///when printing divide by 1000
-		
+		///printing here customer data
 		if (c.c_data.type == TYPE_QUIT){
 			printf("quit arrived to upgrade\n");
 			flag = 0;
@@ -60,6 +60,9 @@ int main(){
 		usleep(1000000);
 		i++;
 	}
+	
+	
+	///print here the quit total of clerky
 	
 	
 	if (msgctl(msgid_upgrade,IPC_RMID,NULL) == -1){
