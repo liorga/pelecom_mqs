@@ -34,7 +34,7 @@ int main(int argc ,char* argv[]){
 	c.c_id = 1;
 	c.c_data.type = 1;
 	
-	stopwatch* sw;
+	struct stopwatch* sw;
 	
 	sharedKey = ftok("main.c", PROJ_ID);
 	if(sharedKey == -1){
@@ -123,7 +123,7 @@ int main(int argc ,char* argv[]){
 		///divide before printing data
 		
 		i++;
-		//usleep(1000000);
+		usleep(10000);
 	}
 	wait(&status);
 	
@@ -143,7 +143,7 @@ int main(int argc ,char* argv[]){
 		exit(EXIT_FAILURE);
 	}
 	if(shmctl(shmID,IPC_RMID,NULL) == -1 ){
-		perror("fuck haraaa\n");
+		perror("shmctl has failed\n");
 		exit(EXIT_FAILURE);
 	}
 	
@@ -164,7 +164,7 @@ int quit_action(int msgid_quit,int msgid){
 	if(c.c_data.type == TYPE_QUIT) {
 		//printf("i got quit to send to sorter\n");
 		if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
-			perror("fuck you\n");
+			perror("msgsnd failed\n");
 			exit(EXIT_FAILURE);
 		}
 		printf("quit has arrived\n");

@@ -81,8 +81,14 @@ int main(){
 		///printing here customer data
 		if (c.c_data.type == TYPE_QUIT){
 			printf("quit arrived to upgrade\n");
-			flag = 0;
-			continue;
+			if (msgrcv(msgid_upgrade,&c,sizeof(c),1,IPC_NOWAIT) == -1){
+				if(errno == ENOMSG){
+					flag = 0;
+					continue;
+				}
+			}
+			//flag = 0;
+			//continue;
 		}
 		printf("%d: upgrade arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
 		 c.c_data.enter_time,

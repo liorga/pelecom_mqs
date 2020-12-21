@@ -79,8 +79,14 @@ int main(){
 		total_wait += c.c_data.start_time - c.c_data.enter_time;
 		if (c.c_data.type == TYPE_QUIT){
 			printf("quit arrived to new\n");
-			flag = 0;
-			continue;
+			if (msgrcv(msgid_new,&c,sizeof(c),1,IPC_NOWAIT) == -1){
+				if(errno == ENOMSG){
+					flag = 0;
+					continue;
+				}
+			}
+			//flag = 0;
+			//continue;
 		}
 		printf("%d: new arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
 		       c.c_data.enter_time,
