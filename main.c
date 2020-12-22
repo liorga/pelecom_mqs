@@ -199,6 +199,7 @@ void sorter(){
 	int thousand = 1000;
 	//c.c_id = 1;
 	
+	stopwatch* sw = (stopwatch*)malloc(sizeof(stopwatch));
 	key = ftok("sort", PROJ_ID);
 	if(key == -1){
 		perror("key failed\n");
@@ -317,11 +318,10 @@ void sorter(){
 
 void repair(){
 	Customer c;
-	struct stopwatch* sw;
 	int thousand = 1000;
 	key_t key_repair,sharedKey;
 	int msgid_repair,shmID;
-	
+	stopwatch* sw = (stopwatch*)malloc(sizeof(stopwatch));
 	key_repair = ftok("repair", PROJ_ID);
 	if(key_repair == -1){
 		perror("key_repair1 failed\n");
@@ -390,11 +390,10 @@ void repair(){
 
 void new(){
 	Customer c;
-	struct stopwatch* sw;
 	int thousand = 1000;
 	key_t key_new,sharedKey;
 	int msgid_new,shmID;
-	
+	stopwatch* sw = (stopwatch*)malloc(sizeof(stopwatch));
 	printf("time is now from new : %ld\n",swlap(sw));
 	
 	key_new = ftok("newCustomer", PROJ_ID);
@@ -463,11 +462,10 @@ void new(){
 void upgrade(){
 	//activete watch
 	Customer c;
-	struct stopwatch* sw;
 	int thousand = 1000;
 	key_t key_upgrade,sharedKey;
 	int msgid_upgrade,shmID;
-
+	stopwatch* sw = (stopwatch*)malloc(sizeof(stopwatch));
 	
 	key_upgrade = ftok("upgrade", PROJ_ID);
 	if(key_upgrade == -1){
