@@ -58,13 +58,13 @@ int main(int argc ,char* argv[]){
 	
 	key = ftok("sort", PROJ_ID);
 	if(key == -1){
-		perror("key failed\n");
+		perror("key failed");
 		exit(EXIT_FAILURE);
 	}
 	
 	keyQuit = ftok("quit", PROJ_ID);
 	if(keyQuit == -1){
-		perror("key failed\n");
+		perror("key failed");
 		exit(EXIT_FAILURE);
 	}
 	
@@ -72,13 +72,13 @@ int main(int argc ,char* argv[]){
 	
 	msgid_quit = msgget(keyQuit, 0666 | IPC_CREAT);
 	if(msgid_quit == -1){
-		perror("msg send failed\n");
+		perror("msg send failed");
 		exit(EXIT_FAILURE);
 	}
 	
 	msgid = msgget(key, 0666 | IPC_CREAT);
 	if(msgid == -1){
-		perror("msg send failed\n");
+		perror("msg send failed");
 		exit(EXIT_FAILURE);
 	}
 	
@@ -123,7 +123,7 @@ int main(int argc ,char* argv[]){
 		}
 		//printf("iam herer\n");
 		if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
-			perror("bla bla\n");
+			perror("bla bla");
 			exit(EXIT_FAILURE);
 		}
 		///use arrive entry time for sleep
@@ -144,7 +144,7 @@ int main(int argc ,char* argv[]){
 		exit(EXIT_FAILURE);
 	}*/
 	if (msgctl(msgid_quit,IPC_RMID,NULL) == -1){
-		perror("clear failed2\n");
+		perror("clear failed2");
 		exit(EXIT_FAILURE);
 	}
 	
@@ -165,7 +165,7 @@ int quit_action(int msgid_quit,int msgid){
 	if(c.c_data.type == TYPE_QUIT) {
 		//printf("i got quit to send to sorter\n");
 		if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
-			perror("msgsnd failed\n");
+			perror("msgsnd failed");
 			exit(EXIT_FAILURE);
 		}
 		printf("quit has arrived\n");
@@ -199,40 +199,40 @@ void sorter(stopwatch* sw){
 		
 		key_upgrade = ftok("upgrade", PROJ_ID);
 		if (key_upgrade == -1) {
-			perror("key_upgrade failed\n");
+			perror("key_upgrade failed");
 			exit(EXIT_FAILURE);
 		}
 		
 		key_new = ftok("newCustomer", PROJ_ID);
 		if (key_new == -1) {
-			perror("key_new failed\n");
+			perror("key_new failed");
 			exit(EXIT_FAILURE);
 		}
 		
 		key_repair = ftok("repair", PROJ_ID);
 		if (key_repair == -1) {
-			perror("key_repair failed\n");
+			perror("key_repair failed");
 			exit(EXIT_FAILURE);
 		}
 		
 		msgid = msgget(key, 0666 | IPC_CREAT);
 		if (msgid == -1) {
-			perror("msg send failed\n");
+			perror("msg send failed");
 			exit(EXIT_FAILURE);
 		}
 		msgid_new = msgget(key_new, 0666 | IPC_CREAT);
 		if (msgid_new == -1) {
-			perror("msg_new send failed\n");
+			perror("msg_new send failed");
 			exit(EXIT_FAILURE);
 		}
 		msgid_upgrade = msgget(key_upgrade, 0666 | IPC_CREAT);
 		if (msgid_upgrade == -1) {
-			perror("msg_upgrade send failed\n");
+			perror("msg_upgrade send failed");
 			exit(EXIT_FAILURE);
 		}
 		msgid_repair = msgget(key_repair, 0666 | IPC_CREAT);
 		if (msgid_repair == -1) {
-			perror("msg_repair send failed\n");
+			perror("msg_repair send failed");
 			exit(EXIT_FAILURE);
 		}
 		
@@ -243,8 +243,11 @@ void sorter(stopwatch* sw){
 		long wait_time;
 		while (flag) {
 			
-			if (msgrcv(msgid, &c, sizeof(c), 1, 0) == -1) {
-				perror("mgs sent failed\n");
+			if (msgrcv(msgid, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+				if (errno == ENOMSG){
+					continue;
+				}
+				perror("mgs rcv failed");
 				exit(EXIT_FAILURE);
 			}
 			///sort wait use avg sort from pnrand()
@@ -256,15 +259,15 @@ void sorter(stopwatch* sw){
 			if (c.c_data.type == TYPE_QUIT) {
 				printf("im here with quit\n");
 				if (msgsnd(msgid_new, &c, sizeof(c), 0) == -1) {
-					perror("new snd\n");
+					perror("new snd");
 					exit(EXIT_FAILURE);
 				}
 				if (msgsnd(msgid_upgrade, &c, sizeof(c), 0) == -1) {
-					perror("upgrade snd\n");
+					perror("upgrade snd");
 					exit(EXIT_FAILURE);
 				}
 				if (msgsnd(msgid_repair, &c, sizeof(c), 0) == -1) {
-					perror("repair snd\n");
+					perror("repair snd");
 					exit(EXIT_FAILURE);
 				}
 				flag = 0;
@@ -272,21 +275,21 @@ void sorter(stopwatch* sw){
 			if (c.c_data.type == TYPE_NEW) {
 				//printf("new customer\n");
 				if (msgsnd(msgid_new, &c, sizeof(c), 0) == -1) {
-					perror("new snd\n");
+					perror("new snd");
 					exit(EXIT_FAILURE);
 				}
 			}
 			if (c.c_data.type == TYPE_UPGRADE) {
 				//printf("customer upgrade\n");
 				if (msgsnd(msgid_upgrade, &c, sizeof(c), 0) == -1) {
-					perror("upgrade snd\n");
+					perror("upgrade snd");
 					exit(EXIT_FAILURE);
 				}
 			}
 			if (c.c_data.type == TYPE_REPAIR) {
 				//printf("customer repair\n");
 				if (msgsnd(msgid_repair, &c, sizeof(c), 0) == -1) {
-					perror("repair snd\n");
+					perror("repair snd");
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -301,7 +304,7 @@ void sorter(stopwatch* sw){
 		///
 		
 		if (msgctl(msgid, IPC_RMID, NULL) == -1) {
-			perror("clear failed\n");
+			perror("clear failed");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -318,13 +321,13 @@ void repair(stopwatch* sw){
 		//stopwatch *sw = (stopwatch *) malloc(sizeof(stopwatch));
 		key_repair = ftok("repair", PROJ_ID);
 		if (key_repair == -1) {
-			perror("key_repair1 failed\n");
+			perror("key_repair1 failed");
 			exit(EXIT_FAILURE);
 		}
 		
 		msgid_repair = msgget(key_repair, 0666 | IPC_CREAT);
 		if (msgid_repair == -1) {
-			perror("msg_repair send1 failed\n");
+			perror("msg_repair send1 failed");
 			exit(EXIT_FAILURE);
 		}
 		int i = 0;
@@ -333,8 +336,11 @@ void repair(stopwatch* sw){
 		int customer_cnt = 0, total_work = 0, total_wait = 0;
 		printf("time is now from repair: %ld\n", swlap(sw));
 		while (flag) {
-			if (msgrcv(msgid_repair, &c, sizeof(c), 1, 0) == -1) {
-				perror("mgs sent2 failed\n");
+			if (msgrcv(msgid_repair, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+				if (errno == ENOMSG){
+					continue;
+				}
+				perror("mgs rcv2 failed");
 				exit(EXIT_FAILURE);
 			}
 			///start time its swlap()
@@ -359,7 +365,7 @@ void repair(stopwatch* sw){
 				if (msgrcv(msgid_repair, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
 					if (errno == ENOMSG) {
 						flag = 0;
-						continue;
+						break;
 					}
 				}
 				//flag = 0;
@@ -376,7 +382,7 @@ void repair(stopwatch* sw){
 		
 		
 		if (msgctl(msgid_repair, IPC_RMID, NULL) == -1) {
-			perror("clear failed\n");
+			perror("clear failed");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -395,13 +401,13 @@ void new(stopwatch* sw){
 		
 		key_new = ftok("newCustomer", PROJ_ID);
 		if (key_new == -1) {
-			perror("key_new1 failed\n");
+			perror("key_new1 failed");
 			exit(EXIT_FAILURE);
 		}
 		
 		msgid_new = msgget(key_new, 0666 | IPC_CREAT);
 		if (msgid_new == -1) {
-			perror("msg_new send1 failed\n");
+			perror("msg_new send1 failed");
 			exit(EXIT_FAILURE);
 		}
 		int i = 0;
@@ -409,8 +415,11 @@ void new(stopwatch* sw){
 		ssize_t res = 0;
 		int customer_cnt = 0, total_work = 0, total_wait = 0;
 		while (flag) {
-			if (msgrcv(msgid_new, &c, sizeof(c), 1, 0) == -1) {
-				perror("mgs sent3 failed\n");
+			if (msgrcv(msgid_new, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+				if (errno == ENOMSG){
+					continue;
+				}
+				perror("mgs rcv3 failed");
 				exit(EXIT_FAILURE);
 			}
 			///start time its swlap()
@@ -435,7 +444,7 @@ void new(stopwatch* sw){
 				if (msgrcv(msgid_new, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
 					if (errno == ENOMSG) {
 						flag = 0;
-						continue;
+						break;
 					}
 				}
 				//flag = 0;
@@ -452,7 +461,7 @@ void new(stopwatch* sw){
 		
 		
 		if (msgctl(msgid_new, IPC_RMID, NULL) == -1) {
-			perror("clear failed\n");
+			perror("clear failed");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -470,13 +479,13 @@ void upgrade(stopwatch* sw){
 		
 		key_upgrade = ftok("upgrade", PROJ_ID);
 		if (key_upgrade == -1) {
-			perror("key_upgrade1 failed\n");
+			perror("key_upgrade1 failed");
 			exit(EXIT_FAILURE);
 		}
 		
 		msgid_upgrade = msgget(key_upgrade, 0666 | IPC_CREAT);
 		if (msgid_upgrade == -1) {
-			perror("msg_upgrade send1 failed\n");
+			perror("msg_upgrade send1 failed");
 			exit(EXIT_FAILURE);
 		}
 		int i = 0;
@@ -484,8 +493,11 @@ void upgrade(stopwatch* sw){
 		ssize_t res = 0;
 		int customer_cnt = 0, total_work = 0, total_wait = 0;
 		while (flag) {
-			if (msgrcv(msgid_upgrade, &c, sizeof(c), 1, 0) == -1) {
-				perror("mgs sent1 failed\n");
+			if (msgrcv(msgid_upgrade, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+				if (errno == ENOMSG){
+					continue;
+				}
+				perror("mgs rcv1 failed");
 				exit(EXIT_FAILURE);
 			}
 			///start time its swlap()
@@ -513,7 +525,7 @@ void upgrade(stopwatch* sw){
 				if (msgrcv(msgid_upgrade, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
 					if (errno == ENOMSG) {
 						flag = 0;
-						continue;
+						break;
 					}
 				}
 				//flag = 0;
@@ -533,7 +545,7 @@ void upgrade(stopwatch* sw){
 		///print here the quit total of clerky
 		
 		if (msgctl(msgid_upgrade, IPC_RMID, NULL) == -1) {
-			perror("clear failed\n");
+			perror("clear failed");
 			exit(EXIT_FAILURE);
 		}
 	}
