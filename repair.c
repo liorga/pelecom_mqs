@@ -24,20 +24,20 @@ int main(){
 	key_t key_repair,sharedKey;
 	int msgid_repair,shmID;
 	
-	sharedKey = ftok("main.c", PROJ_ID);
+/*	sharedKey = ftok("shm", PROJ_ID);
 	if(sharedKey == -1){
-		perror("shared key failed\n");
+		perror("shared key failed2\n");
 		exit(EXIT_FAILURE);
 	}
 	
-	shmID = shmget(sharedKey,1024,0644| IPC_CREAT);
+	shmID = shmget(sharedKey,sizeof(struct stopwatch*),0644| IPC_CREAT);
 	if(shmID == -1){
 		perror("shared memory failed3\n");
 		exit(EXIT_FAILURE);
 	}
 	
 	sw = (struct stopwatch*)shmat( shmID, NULL, 0 );
-	
+	*/
 	
 	key_repair = ftok("repair", PROJ_ID);
 	if(key_repair == -1){
@@ -56,7 +56,7 @@ int main(){
 	int customer_cnt = 0,total_work =0,total_wait = 0;
 	printf("time is now from repair: %ld\n",swlap(sw));
 	while(flag){
-		if (res = msgrcv(msgid_repair,&c,sizeof(c),1,0) == -1){
+		if (msgrcv(msgid_repair,&c,sizeof(c),1,0) == -1){
 			perror("mgs sent2 failed\n");
 			exit(EXIT_FAILURE);
 		}

@@ -25,20 +25,20 @@ int main(){
 	int msgid_upgrade,shmID;
 	
 	
-	sharedKey = ftok("main.c", PROJ_ID);
+/*	sharedKey = ftok("shm", PROJ_ID);
 	if(sharedKey == -1){
-		perror("shared key failed\n");
+		perror("shared key failed6\n");
 		exit(EXIT_FAILURE);
 	}
 	
-	shmID = shmget(sharedKey,1024,0644| IPC_CREAT);
+	shmID = shmget(sharedKey,sizeof(struct stopwatch*),0644| IPC_CREAT);
 	if(shmID == -1){
-		perror("shared memory failed2\n");
+		perror("shared memory failed7\n");
 		exit(EXIT_FAILURE);
 	}
 	
 	sw = (struct stopwatch*)shmat( shmID, NULL, 0 );
-	
+	*/
 	key_upgrade = ftok("upgrade", PROJ_ID);
 	if(key_upgrade == -1){
 		perror("key_upgrade1 failed\n");

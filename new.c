@@ -25,19 +25,19 @@ int main(){
 	int msgid_new,shmID;
 	
 	
-	sharedKey = ftok("main.c", PROJ_ID);
+/*	sharedKey = ftok("shm", PROJ_ID);
 	if(sharedKey == -1){
-		perror("shared key failed\n");
+		perror("shared key failed4\n");
 		exit(EXIT_FAILURE);
 	}
 	
-	shmID = shmget(sharedKey,1024,0644 | IPC_CREAT);
+	shmID = shmget(sharedKey,sizeof(struct stopwatch*),0644 | IPC_CREAT);
 	if(shmID == -1){
-		perror("shared memory failed4\n");
+		perror("shared memory failed5\n");
 		exit(EXIT_FAILURE);
 	}
 	
-	sw = (struct stopwatch*)shmat( shmID, NULL, 0 );
+	sw = (struct stopwatch*)shmat( shmID, NULL, 0 );*/
 	printf("time is now from new : %ld\n",swlap(sw));
 	
 	key_new = ftok("newCustomer", PROJ_ID);
@@ -56,7 +56,7 @@ int main(){
 	ssize_t res = 0;
 	int customer_cnt = 0,total_work =0,total_wait = 0;
 	while(flag){
-		if (res = msgrcv(msgid_new,&c,sizeof(c),1,0) == -1){
+		if (msgrcv(msgid_new,&c,sizeof(c),1,0) == -1){
 			perror("mgs sent3 failed\n");
 			exit(EXIT_FAILURE);
 		}
