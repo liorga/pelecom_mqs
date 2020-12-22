@@ -124,6 +124,7 @@ int main(int argc ,char* argv[]){
 		//printf("iam herer\n");
 		if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
 			perror("bla bla");
+			printf("%d\n",errno);
 			exit(EXIT_FAILURE);
 		}
 		///use arrive entry time for sleep
@@ -166,6 +167,7 @@ int quit_action(int msgid_quit,int msgid){
 		//printf("i got quit to send to sorter\n");
 		if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
 			perror("msgsnd failed");
+			printf("%d\n",errno);
 			exit(EXIT_FAILURE);
 		}
 		printf("quit has arrived\n");
@@ -341,6 +343,7 @@ void repair(stopwatch* sw){
 					continue;
 				}
 				perror("mgs rcv2 failed");
+				printf("%d\n",errno);
 				exit(EXIT_FAILURE);
 			}
 			///start time its swlap()
@@ -420,6 +423,7 @@ void new(stopwatch* sw){
 					continue;
 				}
 				perror("mgs rcv3 failed");
+				printf("%d\n",errno);
 				exit(EXIT_FAILURE);
 			}
 			///start time its swlap()
@@ -498,6 +502,7 @@ void upgrade(stopwatch* sw){
 					continue;
 				}
 				perror("mgs rcv1 failed");
+				printf("%d\n",errno);
 				exit(EXIT_FAILURE);
 			}
 			///start time its swlap()
