@@ -172,14 +172,14 @@ int main(int argc ,char* argv[]){
 		}
 	}
 	
-		waitpid(pid1,&status,0);
-		//printf("pid1 status is : %d\n",WEXITSTATUS(status));
-		waitpid(pid2,&status,0);
-		//printf("pid2 status is : %d\n",WEXITSTATUS(status));
-		waitpid(pid3,&status,0);
-		//printf("pid3 status is : %d\n",WEXITSTATUS(status));
-		waitpid(pid4,&status,0);
-		//printf("pid4 status is : %d\n",WEXITSTATUS(status));
+	waitpid(pid1,&status,0);
+	//printf("pid1 status is : %d\n",WEXITSTATUS(status));
+	waitpid(pid2,&status,0);
+	//printf("pid2 status is : %d\n",WEXITSTATUS(status));
+	waitpid(pid3,&status,0);
+	//printf("pid3 status is : %d\n",WEXITSTATUS(status));
+	waitpid(pid4,&status,0);
+	//printf("pid4 status is : %d\n",WEXITSTATUS(status));
 	
 //	while (wait(&status) > 0);
 	
@@ -233,226 +233,253 @@ int quit_action(int msgid_quit,int msgid){
 }
 
 void sorter(stopwatch* sw){
-		//Customer c;
-		int status;
-		int thousand = 1000;
-		int i = 0;
-		int flag = 1;
-		ssize_t res = 0;
-		long wait_time;
-		while (flag) {
-			if (msgrcv(msgid, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
-				if (errno == ENOMSG){
-					continue;
-				}
-				perror("mgs rcv failed");
-				exit(EXIT_FAILURE);
-			}
-			///sort wait use avg sort from pnrand()
-			///put to sleep in avg sort time
-			wait_time = pnrand(AVRG_SORT, SPRD_SORT, MIN_SORT) / thousand;
-			usleep(wait_time * thousand);
-			
-			if (c.c_data.type == TYPE_QUIT) {
-				//printf("im here with quit\n");
-				if (msgsnd(msgid_new, &c, sizeof(c), 0) == -1) {
-					perror("new snd");
-					exit(EXIT_FAILURE);
-				}
-				if (msgsnd(msgid_upgrade, &c, sizeof(c), 0) == -1) {
-					perror("upgrade snd");
-					exit(EXIT_FAILURE);
-				}
-				if (msgsnd(msgid_repair, &c, sizeof(c), 0) == -1) {
-					perror("repair snd");
-					exit(EXIT_FAILURE);
-				}
-				flag = 0;
+	printf("Sorter running\n");
+	int status;
+	int thousand = 1000;
+	int i = 0;
+	int flag = 1;
+	ssize_t res = 0;
+	long wait_time;
+	while (flag) {
+		if (msgrcv(msgid, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+			if (errno == ENOMSG){
 				continue;
 			}
-			if (c.c_data.type == TYPE_NEW) {
-				//printf("new customer\n");
-				if (msgsnd(msgid_new, &c, sizeof(c), 0) == -1) {
-					perror("new snd");
-					exit(EXIT_FAILURE);
-				}
-			}
-			if (c.c_data.type == TYPE_UPGRADE) {
-				//printf("customer upgrade\n");
-				if (msgsnd(msgid_upgrade, &c, sizeof(c), 0) == -1) {
-					perror("upgrade snd");
-					exit(EXIT_FAILURE);
-				}
-			}
-			if (c.c_data.type == TYPE_REPAIR) {
-				//printf("customer repair\n");
-				if (msgsnd(msgid_repair, &c, sizeof(c), 0) == -1) {
-					perror("repair snd");
-					exit(EXIT_FAILURE);
-				}
-			}
-			i++;
+			perror("mgs rcv failed");
+			exit(EXIT_FAILURE);
 		}
-	
+		///sort wait use avg sort from pnrand()
+		///put to sleep in avg sort time
+		wait_time = pnrand(AVRG_SORT, SPRD_SORT, MIN_SORT) / thousand;
+		usleep(wait_time * thousand);
+			
+		if (c.c_data.type == TYPE_QUIT) {
+			//printf("im here with quit\n");
+			if (msgsnd(msgid_new, &c, sizeof(c), 0) == -1) {
+				perror("new snd");
+				exit(EXIT_FAILURE);
+			}
+			if (msgsnd(msgid_upgrade, &c, sizeof(c), 0) == -1) {
+				perror("upgrade snd");
+				exit(EXIT_FAILURE);
+			}
+			if (msgsnd(msgid_repair, &c, sizeof(c), 0) == -1) {
+				perror("repair snd");
+				exit(EXIT_FAILURE);
+			}
+			flag = 0;
+			continue;
+		}
+		if (c.c_data.type == TYPE_NEW) {
+			//printf("new customer\n");
+			if (msgsnd(msgid_new, &c, sizeof(c), 0) == -1) {
+				perror("new snd");
+				exit(EXIT_FAILURE);
+			}
+		}
+		if (c.c_data.type == TYPE_UPGRADE) {
+			//printf("customer upgrade\n");
+			if (msgsnd(msgid_upgrade, &c, sizeof(c), 0) == -1) {
+				perror("upgrade snd");
+				exit(EXIT_FAILURE);
+			}
+		}
+		if (c.c_data.type == TYPE_REPAIR) {
+			//printf("customer repair\n");
+			if (msgsnd(msgid_repair, &c, sizeof(c), 0) == -1) {
+				perror("repair snd");
+				exit(EXIT_FAILURE);
+			}
+		}
+		i++;
+	}
+	printf("Sorter quitting\n");
 }
 
 void repair(stopwatch* sw){
-
-		//Customer c;
-		int thousand = 1000;
-		int i = 0;
-		int flag = 1;
-		ssize_t res = 0;
-		int customer_cnt = 0, total_work = 0, total_wait = 0;
+	printf("Clerk for repair customers is starting\n");
+	long elapsed_time_start = swlap(sw);
+	long elapsed_time_end;
+	int thousand = 1000;
+	int i = 0;
+	int flag = 1;
+	ssize_t res = 0;
+	int customer_cnt = 0, total_work = 0, total_wait = 0;
 		
-		while (flag) {
-			//printf("customer id: %ld\n");
-			if (msgrcv(msgid_repair, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
-				if (errno == ENOMSG){
-					continue;
-				}
-				perror("mgs rcv2 failed line 345");
-				printf("%d\n",errno);
-				exit(EXIT_FAILURE);
-			}
-			
-			if (c.c_data.type == TYPE_QUIT) {
-				//printf("quit arrived to repair\n");
-				flag = 0;
+	while (flag) {
+		//printf("customer id: %ld\n");
+		if (msgrcv(msgid_repair, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+			if (errno == ENOMSG){
 				continue;
 			}
-			///start time its swlap()
-			c.c_data.start_time = swlap(sw);
-			///sleep procces time using prand
-			c.c_data.process_time = pnrand(AVRG_UPGRADE, SPRD_UPGRADE, MIN_UPGRADE) / thousand;
-			usleep(c.c_data.process_time * thousand);
-			c.c_data.exit_time = swlap(sw);
-			///as wake up using swlap() for exit time
-			
-			
-			///exit time - entry time = elapsed time
-			c.c_data.elapse_time = c.c_data.exit_time - c.c_data.enter_time;
-			///countimg customer ++
-			customer_cnt++;
-			///work time total += exit time - start time
-			total_work += c.c_data.exit_time - c.c_data.start_time;
-			///wait total += start - entry
-			total_wait += c.c_data.start_time - c.c_data.enter_time;
-			if (c.c_data.type == TYPE_QUIT) {
-				//printf("quit arrived to repair\n");
-
-				flag = 0;
-				continue;
-			}
-			printf("%d: repair arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
-			       c.c_data.enter_time,
-			       c.c_data.start_time,
-			       c.c_data.process_time,
-			       c.c_data.exit_time,
-			       c.c_data.elapse_time);
-			i++;
+			perror("mgs rcv2 failed line 345");
+			printf("%d\n",errno);
+			exit(EXIT_FAILURE);
 		}
+			
+		if (c.c_data.type == TYPE_QUIT) {
+			//printf("quit arrived to repair\n");
+			flag = 0;
+			continue;
+		}
+		///start time its swlap()
+		c.c_data.start_time = swlap(sw);
+		///sleep procces time using prand
+		c.c_data.process_time = pnrand(AVRG_UPGRADE, SPRD_UPGRADE, MIN_UPGRADE) / thousand;
+		usleep(c.c_data.process_time * thousand);
+		c.c_data.exit_time = swlap(sw);
+		///as wake up using swlap() for exit time
+			
+			
+		///exit time - entry time = elapsed time
+		c.c_data.elapse_time = c.c_data.exit_time - c.c_data.enter_time;
+		///countimg customer ++
+		customer_cnt++;
+		///work time total += exit time - start time
+		total_work += c.c_data.exit_time - c.c_data.start_time;
+		///wait total += start - entry
+		total_wait += c.c_data.start_time - c.c_data.enter_time;
+		if (c.c_data.type == TYPE_QUIT) {
+			//printf("quit arrived to repair\n");
+			elapsed_time_end = swlap(sw);
+			flag = 0;
+			continue;
+		}
+		printf("%d: repair arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
+		       c.c_data.enter_time,
+		       c.c_data.start_time,
+		       c.c_data.process_time,
+		       c.c_data.exit_time,
+		       c.c_data.elapse_time);
+		i++;
+	}
+	printf("Clerk for repair customers is quitting\n");
+	printf("Clerk for repair customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n",customer_cnt
+			,elapsed_time_end-elapsed_time_start
+			,total_work
+			,total_wait
+			,total_work/customer_cnt
+			,total_wait/customer_cnt);
 
 }
 
 void new(stopwatch* sw){
-		//Customer c;
-		int thousand = 1000;
-		int i = 0;
-		int flag = 1;
-		int customer_cnt = 0, total_work = 0, total_wait = 0;
-		while (flag) {
-			if (msgrcv(msgid_new, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
-				if (errno == ENOMSG){
-					continue;
-				}
-				perror("mgs rcv3 failed line 425");
-				printf("%d\n",errno);
-				exit(EXIT_FAILURE);
-			}
-			
-			if (c.c_data.type == TYPE_QUIT) {
-				//printf("quit arrived to new\n");
-				flag = 0;
+	printf("Clerk for new customers is starting\n");
+	long elapsed_time_start = swlap(sw);
+	long elapsed_time_end;
+	int thousand = 1000;
+	int i = 0;
+	int flag = 1;
+	int customer_cnt = 0, total_work = 0, total_wait = 0;
+	while (flag) {
+		if (msgrcv(msgid_new, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+			if (errno == ENOMSG){
 				continue;
 			}
-			///start time its swlap()
-			c.c_data.start_time = swlap(sw);
-			///sleep procces time using prand
-			c.c_data.process_time = pnrand(AVRG_UPGRADE, SPRD_UPGRADE, MIN_UPGRADE) / thousand;
-			usleep(c.c_data.process_time * thousand);
-			c.c_data.exit_time = swlap(sw);
-			///as wake up using swlap() for exit time
-			
-			///exit time - entry time = elapsed time
-			c.c_data.elapse_time = c.c_data.exit_time - c.c_data.enter_time;
-			///countimg customer ++
-			customer_cnt++;
-			///work time total += exit time - start time
-			total_work += c.c_data.exit_time - c.c_data.start_time;
-			///wait total += start - entry
-			total_wait += c.c_data.start_time - c.c_data.enter_time;
-
-			printf("%d: new arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
-			       c.c_data.enter_time,
-			       c.c_data.start_time,
-			       c.c_data.process_time,
-			       c.c_data.exit_time,
-			       c.c_data.elapse_time);
-			i++;
+			perror("mgs rcv3 failed line 425");
+			printf("%d\n",errno);
+			exit(EXIT_FAILURE);
 		}
+			
+		if (c.c_data.type == TYPE_QUIT) {
+			//printf("quit arrived to new\n");
+			elapsed_time_end = swlap(sw);
+			flag = 0;
+			continue;
+		}
+		///start time its swlap()
+		c.c_data.start_time = swlap(sw);
+		///sleep procces time using prand
+		c.c_data.process_time = pnrand(AVRG_UPGRADE, SPRD_UPGRADE, MIN_UPGRADE) / thousand;
+		usleep(c.c_data.process_time * thousand);
+		c.c_data.exit_time = swlap(sw);
+		///as wake up using swlap() for exit time
+			
+		///exit time - entry time = elapsed time
+		c.c_data.elapse_time = c.c_data.exit_time - c.c_data.enter_time;
+		///countimg customer ++
+		customer_cnt++;
+		///work time total += exit time - start time
+		total_work += c.c_data.exit_time - c.c_data.start_time;
+		///wait total += start - entry
+		total_wait += c.c_data.start_time - c.c_data.enter_time;
+
+		printf("%d: new arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
+		       c.c_data.enter_time,
+		       c.c_data.start_time,
+		       c.c_data.process_time,
+		       c.c_data.exit_time,
+		       c.c_data.elapse_time);
+		i++;
+	}
+	printf("Clerk for new customers is quitting\n");
+	printf("Clerk for new customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n",customer_cnt
+			,elapsed_time_end-elapsed_time_start
+			,total_work
+			,total_wait
+			,total_work/customer_cnt
+			,total_wait/customer_cnt);
 
 }
 void upgrade(stopwatch* sw){
-	//activete watch
-		//Customer c;
-		int thousand = 1000;
-		int i = 0;
-		int flag = 1;
-		ssize_t res = 0;
-		int customer_cnt = 0, total_work = 0, total_wait = 0;
-		while (flag) {
-			if (msgrcv(msgid_upgrade, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
-				if (errno == ENOMSG){
-					continue;
-				}
-				perror("mgs rcv1 failed line 504");
-				printf("%d\n",errno);
-				exit(EXIT_FAILURE);
-			}
-			if (c.c_data.type == TYPE_QUIT) {
-				//printf("quit arrived to upgrade\n");
-				flag = 0;
+	printf("Clerk for upgrade customers is starting\n");
+	long elapsed_time_start = swlap(sw);
+	long elapsed_time_end;
+	int thousand = 1000;
+	int i = 0;
+	int flag = 1;
+	ssize_t res = 0;
+	int customer_cnt = 0, total_work = 0, total_wait = 0;
+	while (flag) {
+		if (msgrcv(msgid_upgrade, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+			if (errno == ENOMSG){
 				continue;
 			}
-			///start time its swlap()
-			c.c_data.start_time = swlap(sw);
-			///sleep procces time using prand
-			c.c_data.process_time = pnrand(AVRG_UPGRADE, SPRD_UPGRADE, MIN_UPGRADE) / thousand;
-			usleep(c.c_data.process_time * thousand);
-			c.c_data.exit_time = swlap(sw);
-			///as wake up using swlap() for exit time
-			
-			
-			///exit time - entry time = elapsed time
-			c.c_data.elapse_time = c.c_data.exit_time - c.c_data.enter_time;
-			///countimg customer ++
-			customer_cnt++;
-			///work time total += exit time - start time
-			total_work += c.c_data.exit_time - c.c_data.start_time;
-			///wait total += start - entry
-			total_wait += c.c_data.start_time - c.c_data.enter_time;
-			///then printing
-			///when printing divide by 1000
-			///printing here customer data
-
-			printf("%d: upgrade arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
-			       c.c_data.enter_time,
-			       c.c_data.start_time,
-			       c.c_data.process_time,
-			       c.c_data.exit_time,
-			       c.c_data.elapse_time);
-			i++;
+			perror("mgs rcv1 failed line 504");
+			printf("%d\n",errno);
+			exit(EXIT_FAILURE);
 		}
+		if (c.c_data.type == TYPE_QUIT) {
+			//printf("quit arrived to upgrade\n");
+			elapsed_time_end = swlap(sw);
+			flag = 0;
+			continue;
+		}
+		///start time its swlap()
+		c.c_data.start_time = swlap(sw);
+		///sleep procces time using prand
+		c.c_data.process_time = pnrand(AVRG_UPGRADE, SPRD_UPGRADE, MIN_UPGRADE) / thousand;
+		usleep(c.c_data.process_time * thousand);
+		c.c_data.exit_time = swlap(sw);
+		///as wake up using swlap() for exit time
+			
+			
+		///exit time - entry time = elapsed time
+		c.c_data.elapse_time = c.c_data.exit_time - c.c_data.enter_time;
+		///countimg customer ++
+		customer_cnt++;
+		///work time total += exit time - start time
+		total_work += c.c_data.exit_time - c.c_data.start_time;
+		///wait total += start - entry
+		total_wait += c.c_data.start_time - c.c_data.enter_time;
+		///then printing
+		///when printing divide by 1000
+		///printing here customer data
 
+		printf("%d: upgrade arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
+		       c.c_data.enter_time,
+		       c.c_data.start_time,
+		       c.c_data.process_time,
+		       c.c_data.exit_time,
+		       c.c_data.elapse_time);
+		i++;
+	}
+	
+	printf("Clerk for upgrade customers is quitting\n");
+	printf("Clerk for upgrade customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n",customer_cnt
+		,elapsed_time_end-elapsed_time_start
+		,total_work
+		,total_wait
+		,total_work/customer_cnt
+		,total_wait/customer_cnt);
 }
