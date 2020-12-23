@@ -119,8 +119,8 @@ int main(int argc ,char* argv[]){
 				///activate swlap() for the entry ttime
 				c.c_data.enter_time = swlap(&sw);
 				c.c_data.id = i;
-				wait_time = pnrand(AVRG_ARRIVE,SPRD_ARRIVE,MIN_ARRIVE)/thousand;
-				usleep(wait_time*thousand);
+				wait_time =(int)pnrand(AVRG_ARRIVE,SPRD_ARRIVE,MIN_ARRIVE);
+				usleep(wait_time);
 				///pnrand() with arrive data in pelecom.h wait avrg time
 				if (rand_res <= POP_NEW) {
 					///pnrand() for each type use pelecom header for type procces time
