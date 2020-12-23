@@ -274,7 +274,12 @@ void sorter(stopwatch* sw){
 					perror("repair snd");
 					exit(EXIT_FAILURE);
 				}
+				if (msgctl(msgid, IPC_RMID, NULL) == -1) {
+					perror("clear failed");
+					exit(EXIT_FAILURE);
+				}
 				flag = 0;
+				continue;
 			}
 			if (c.c_data.type == TYPE_NEW) {
 				//printf("new customer\n");
@@ -301,13 +306,9 @@ void sorter(stopwatch* sw){
 		}
 		///
 		
-		if (msgctl(msgid, IPC_RMID, NULL) == -1) {
-			perror("clear failed");
-			exit(EXIT_FAILURE);
-		}
 		exit(0);
 	}
-	printf("exsiting sorter\n");
+	//printf("exsiting sorter\n");
 	
 	
 }
@@ -374,8 +375,12 @@ void repair(stopwatch* sw){
 						continue;
 					}
 				}*/
-				//flag = 0;
-				//continue;
+				if (msgctl(msgid_repair, IPC_RMID, NULL) == -1) {
+					perror("clear failed");
+					exit(EXIT_FAILURE);
+				}
+				flag = 0;
+				continue;
 			}
 			printf("%d: repair arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
 			       c.c_data.enter_time,
@@ -387,14 +392,11 @@ void repair(stopwatch* sw){
 		}
 		
 		
-		if (msgctl(msgid_repair, IPC_RMID, NULL) == -1) {
-			perror("clear failed");
-			exit(EXIT_FAILURE);
-		}
-		printf("exsiting repair clerk\n");
-		
+
+		//printf("exsiting repair clerk\n");
 	}
-	printf("exsiting repair clerk\n");
+	return;
+	//printf("exsiting repair clerk\n");
 }
 
 void new(stopwatch* sw){
@@ -457,8 +459,12 @@ void new(stopwatch* sw){
 						break;
 					}
 				}*/
-				//flag = 0;
-				//continue;
+				if (msgctl(msgid_new, IPC_RMID, NULL) == -1) {
+					perror("clear failed");
+					exit(EXIT_FAILURE);
+				}
+				flag = 0;
+				continue;
 			}
 			printf("%d: new arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
 			       c.c_data.enter_time,
@@ -470,12 +476,10 @@ void new(stopwatch* sw){
 		}
 		
 		
-		if (msgctl(msgid_new, IPC_RMID, NULL) == -1) {
-			perror("clear failed");
-			exit(EXIT_FAILURE);
-		}
+
 		printf("exsiting new clerk\n");
 	}
+	return;
 }
 void upgrade(stopwatch* sw){
 	//activete watch
@@ -540,8 +544,12 @@ void upgrade(stopwatch* sw){
 						break;
 					}
 				}*/
-				//flag = 0;
-				//continue;
+				if (msgctl(msgid_upgrade, IPC_RMID, NULL) == -1) {
+					perror("clear failed");
+					exit(EXIT_FAILURE);
+				}
+				flag = 0;
+				continue;
 			}
 			printf("%d: upgrade arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
 			       c.c_data.enter_time,
@@ -556,10 +564,8 @@ void upgrade(stopwatch* sw){
 		//printf("time is now from upgrade : %ld\n",swlap(sw));
 		///print here the quit total of clerky
 		
-		if (msgctl(msgid_upgrade, IPC_RMID, NULL) == -1) {
-			perror("clear failed");
-			exit(EXIT_FAILURE);
-		}
+
 		printf("exsiting upgrade clerk\n");
 	}
+	return;
 }
