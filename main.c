@@ -119,15 +119,15 @@ int main(int argc ,char* argv[]){
 				c.c_data.type = TYPE_REPAIR;
 				c.c_data.process_time = pnrand(AVRG_REPAIR,SPRD_REPAIR,MIN_REPAIR);
 			}
+			if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
+				printf(" customer type %d\n",c.c_data.type);
+				perror("bla bla line 126");
+				printf("%d\n",errno);
+				exit(EXIT_FAILURE);
+			}
 		}
 		//printf("iam herer\n");
 		
-		if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
-			printf(" customer type %d\n",c.c_data.type);
-			perror("bla bla line 126");
-			printf("%d\n",errno);
-			exit(EXIT_FAILURE);
-		}
 		///use arrive entry time for sleep
 		///divide before printing data
 		
@@ -139,7 +139,7 @@ int main(int argc ,char* argv[]){
 	waitpid(pid1,&status,0);
 	waitpid(pid2,&status,0);
 	waitpid(pid3,&status,0);*/
-	while (wait(&status) > 0){;}
+	while (wait(&status) > 0);
 	
 /*	if (msgctl(msgid,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
@@ -199,9 +199,10 @@ void sorter(stopwatch* sw){
 			perror("key failed\n");
 			exit(EXIT_FAILURE);
 		}
-		
+
 		key_upgrade = ftok("upgrade", PROJ_ID);
 		if (key_upgrade == -1) {
+
 			perror("key_upgrade failed");
 			exit(EXIT_FAILURE);
 		}
@@ -217,7 +218,6 @@ void sorter(stopwatch* sw){
 			perror("key_repair failed");
 			exit(EXIT_FAILURE);
 		}
-		
 		msgid = msgget(key, 0666 | IPC_CREAT);
 		if (msgid == -1) {
 			perror("msg send failed");
@@ -305,8 +305,11 @@ void sorter(stopwatch* sw){
 			perror("clear failed");
 			exit(EXIT_FAILURE);
 		}
+		exit(0);
 	}
 	printf("exsiting sorter\n");
+	
+	
 }
 
 void repair(stopwatch* sw){
@@ -389,6 +392,7 @@ void repair(stopwatch* sw){
 			exit(EXIT_FAILURE);
 		}
 		printf("exsiting repair clerk\n");
+		
 	}
 	printf("exsiting repair clerk\n");
 }
