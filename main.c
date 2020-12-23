@@ -21,41 +21,29 @@ void new(stopwatch* sw);
 void repair(stopwatch* sw);
 void sorter(stopwatch* sw);
 
+key_t key,keyQuit,key_new,key_repair,key_upgrade;
+int msgid,msgid_quit,msgid_new,msgid_repair,msgid_upgrade;
+Customer c;
+
 int main(int argc ,char* argv[]){
 	
 	initrand();
 	
 	///start watch
-	key_t key,keyQuit,sharedKey;
-	int msgid,msgid_quit,shmID;
 	int i = 10000;
 	int rand_res;
 	int min =0,max = 100;
 	int flag = 1;
 	int status;
 	int thousand = 1000;
-	Customer c;
+	//Customer c;
 	c.c_id = 1;
 	c.c_data.type = 1;
 	
-	stopwatch* sw = (stopwatch*)malloc(sizeof(stopwatch));
+	stopwatch sw;
+	swstart(&sw);
 	
-/*	sharedKey = ftok("shm", PROJ_ID);
-	if(sharedKey == -1){
-		perror("shared key failed\n");
-		exit(EXIT_FAILURE);
-	}
-	
-	shmID = shmget(sharedKey, sizeof(struct stopwatch*),0644| IPC_CREAT);
-	if(shmID == -1){
-		perror("shared memory failed1\n");
-		exit(EXIT_FAILURE);
-	}*/
-	
-	//sw = (struct stopwatch*)shmat( shmID, NULL, 0 );
-	swstart(sw);
-	//printf("the time is now from main %ld\n",sw->tv.tv_sec);
-	
+	///todo: function for keys and qeueus to make code more clean and readble
 	key = ftok("sort", PROJ_ID);
 	if(key == -1){
 		perror("key failed");
@@ -67,7 +55,24 @@ int main(int argc ,char* argv[]){
 		perror("key failed");
 		exit(EXIT_FAILURE);
 	}
+	key_upgrade = ftok("upgrade", PROJ_ID);
+	if (key_upgrade == -1) {
+		
+		perror("key_upgrade failed");
+		exit(EXIT_FAILURE);
+	}
 	
+	key_new = ftok("newCustomer", PROJ_ID);
+	if (key_new == -1) {
+		perror("key_new failed");
+		exit(EXIT_FAILURE);
+	}
+	
+	key_repair = ftok("repair", PROJ_ID);
+	if (key_repair == -1) {
+		perror("key_repair failed");
+		exit(EXIT_FAILURE);
+	}
 	
 	
 	msgid_quit = msgget(keyQuit, 0666 | IPC_CREAT);
@@ -81,102 +86,146 @@ int main(int argc ,char* argv[]){
 		perror("msg send failed");
 		exit(EXIT_FAILURE);
 	}
-	
-	
-	sorter(sw);
-	new(sw);
-	upgrade(sw);
-	repair(sw);
-	//
-	//
-	//
-	
-	long wait_time;
-	while (flag){
-		if(quit_action(msgid_quit,msgid) == 2){
-			flag = 0;
-			c.c_id = 2;
-			break;
-		} else {
-			rand_res = urand(min, max);
-			///activate swlap() for the entry ttime
-			c.c_data.enter_time = swlap(sw);
-			c.c_data.id = i;
-			wait_time = pnrand(AVRG_ARRIVE,SPRD_ARRIVE,MIN_ARRIVE)/thousand;
-			usleep(wait_time*thousand);
-			///pnrand() with arrive data in pelecom.h wait avrg time
-			if (rand_res <= POP_NEW) {
-				///pnrand() for each type use pelecom header for type procces time
-				c.c_data.type = TYPE_NEW;
-				c.c_data.process_time = pnrand(AVRG_NEW,SPRD_NEW,MIN_NEW);
-			}
-			if (rand_res > POP_NEW && rand_res <= POP_REPAIR) {
-				c.c_data.type = TYPE_UPGRADE;
-				c.c_data.process_time = pnrand(AVRG_UPGRADE,SPRD_UPGRADE,MIN_UPGRADE);
-			}
-			if (rand_res > POP_REPAIR) {
-				c.c_data.type = TYPE_REPAIR;
-				c.c_data.process_time = pnrand(AVRG_REPAIR,SPRD_REPAIR,MIN_REPAIR);
-			}
-			if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
-				if (errno == EINVAL){
-					break;
-				}
-				printf(" customer type %d\n",c.c_data.type);
-				perror("bla bla line 126");
-				printf("%d\n",errno);
-				exit(EXIT_FAILURE);
-			}
-		}
-		//printf("iam herer\n");
-		
-		///use arrive entry time for sleep
-		///divide before printing data
-		
-		i++;
-		//usleep(10000);
+	msgid_new = msgget(key_new, 0666 | IPC_CREAT);
+	if (msgid_new == -1) {
+		perror("msg_new send failed");
+		exit(EXIT_FAILURE);
+	}
+	msgid_upgrade = msgget(key_upgrade, 0666 | IPC_CREAT);
+	if (msgid_upgrade == -1) {
+		perror("msg_upgrade send failed");
+		exit(EXIT_FAILURE);
+	}
+	msgid_repair = msgget(key_repair, 0666 | IPC_CREAT);
+	if (msgid_repair == -1) {
+		perror("msg_repair send failed");
+		exit(EXIT_FAILURE);
 	}
 	
-/*	waitpid(pid,&status,0);
-	waitpid(pid1,&status,0);
-	waitpid(pid2,&status,0);
-	waitpid(pid3,&status,0);*/
+	//
+	//
+	//
+	//
+	int pid,pid1,pid2,pid3,pid4;
+	pid = fork();
+	if (pid == 0){
+		long wait_time;
+		while (flag){
+			if(quit_action(msgid_quit,msgid) == 2){
+				flag = 0;
+				continue;
+			} else {
+				rand_res = urand(min, max);
+				///activate swlap() for the entry ttime
+				c.c_data.enter_time = swlap(&sw);
+				c.c_data.id = i;
+				wait_time = pnrand(AVRG_ARRIVE,SPRD_ARRIVE,MIN_ARRIVE)/thousand;
+				usleep(wait_time*thousand);
+				///pnrand() with arrive data in pelecom.h wait avrg time
+				if (rand_res <= POP_NEW) {
+					///pnrand() for each type use pelecom header for type procces time
+					c.c_data.type = TYPE_NEW;
+					c.c_data.process_time = pnrand(AVRG_NEW,SPRD_NEW,MIN_NEW);
+				}
+				if (rand_res > POP_NEW && rand_res <= POP_REPAIR) {
+					c.c_data.type = TYPE_UPGRADE;
+					c.c_data.process_time = pnrand(AVRG_UPGRADE,SPRD_UPGRADE,MIN_UPGRADE);
+				}
+				if (rand_res > POP_REPAIR) {
+					c.c_data.type = TYPE_REPAIR;
+					c.c_data.process_time = pnrand(AVRG_REPAIR,SPRD_REPAIR,MIN_REPAIR);
+				}
+				if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
+					printf(" customer type %d\n",c.c_data.type);
+					perror("bla bla line 126");
+					printf("%d\n",errno);
+					exit(EXIT_FAILURE);
+				}
+			}
+			i++;
+		}
+		return 0;
+	}
+	else{
+		pid1 = fork();
+		if (pid1 == 0){
+			sorter(&sw);
+			return 0;
+		} else{
+			pid2 = fork();
+			if (pid2 == 0){
+				new(&sw);
+				return 0;
+			} else{
+				pid3 = fork();
+				if (pid3 == 0){
+					upgrade(&sw);
+					return 0;
+				} else{
+					pid4 = fork();
+					if (pid4 == 0){
+						repair(&sw);
+						return 0;
+					}
+				}
+			}
+		}
+	}
+	
+		waitpid(pid1,&status,0);
+		//printf("pid1 status is : %d\n",WEXITSTATUS(status));
+		waitpid(pid2,&status,0);
+		//printf("pid2 status is : %d\n",WEXITSTATUS(status));
+		waitpid(pid3,&status,0);
+		//printf("pid3 status is : %d\n",WEXITSTATUS(status));
+		waitpid(pid4,&status,0);
+		//printf("pid4 status is : %d\n",WEXITSTATUS(status));
+	
+//	while (wait(&status) > 0);
+	
+	
+	///make delete func for the queues to make code more clean
 	if (msgctl(msgid_quit,IPC_RMID,NULL) == -1){
 		perror("clear failed2");
 		exit(EXIT_FAILURE);
 	}
-	while (wait(&status) > 0);
-	
-/*	if (msgctl(msgid,IPC_RMID,NULL) == -1){
+	if (msgctl(msgid_new, IPC_RMID, NULL) == -1) {
+		perror("clear failed34");
+		exit(EXIT_FAILURE);
+	}
+	if (msgctl(msgid_repair, IPC_RMID, NULL) == -1) {
+		perror("clear failed23");
+		exit(EXIT_FAILURE);
+	}
+	if (msgctl(msgid_upgrade, IPC_RMID, NULL) == -1) {
+		perror("clear failed54");
+		exit(EXIT_FAILURE);
+	}
+	if (msgctl(msgid,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);
-	}*/
+	}
 	
 	return 0;
 }
 
 
 int quit_action(int msgid_quit,int msgid){
-	Customer c;
-	
+	//Customer c;
 	if (msgrcv(msgid_quit, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
 		if (errno == ENOMSG) {
 			//printf("No New Messages\n");
 			return 1;
 		}
 	}
-	//printf("data num is %d\n",c.c_data.type);
 	if(c.c_data.type == TYPE_QUIT) {
 		//printf("i got quit to send to sorter\n");
-		if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
-			if (errno == EINVAL){
-				exit(1);
-			}
+		if (msgsnd(msgid, &c,sizeof(c), 0) == -1) {
 			perror("msgsnd failed line 169");
 			printf("%d\n",errno);
 			exit(EXIT_FAILURE);
 		}
-		printf("quit has arrived\n");
+		//printf("quit has arrived\n");
 		c.c_data.type = TYPE_QUIT;
 		return 2;
 	}
@@ -185,73 +234,14 @@ int quit_action(int msgid_quit,int msgid){
 }
 
 void sorter(stopwatch* sw){
-	pid_t pid;
-	pid = fork();
-	if (pid == 0) {
-		key_t key, key_upgrade, key_repair, key_new;
-		int msgid;
-		int msgid_upgrade;
-		int msgid_repair;
-		int msgid_new;
-		Customer c;
+		//Customer c;
 		int status;
 		int thousand = 1000;
-		//c.c_id = 1;
-		
-		//stopwatch *sw = (stopwatch *) malloc(sizeof(stopwatch));
-		key = ftok("sort", PROJ_ID);
-		if (key == -1) {
-			perror("key failed\n");
-			exit(EXIT_FAILURE);
-		}
-
-		key_upgrade = ftok("upgrade", PROJ_ID);
-		if (key_upgrade == -1) {
-
-			perror("key_upgrade failed");
-			exit(EXIT_FAILURE);
-		}
-		
-		key_new = ftok("newCustomer", PROJ_ID);
-		if (key_new == -1) {
-			perror("key_new failed");
-			exit(EXIT_FAILURE);
-		}
-		
-		key_repair = ftok("repair", PROJ_ID);
-		if (key_repair == -1) {
-			perror("key_repair failed");
-			exit(EXIT_FAILURE);
-		}
-		msgid = msgget(key, 0666 | IPC_CREAT);
-		if (msgid == -1) {
-			perror("msg send failed");
-			exit(EXIT_FAILURE);
-		}
-		msgid_new = msgget(key_new, 0666 | IPC_CREAT);
-		if (msgid_new == -1) {
-			perror("msg_new send failed");
-			exit(EXIT_FAILURE);
-		}
-		msgid_upgrade = msgget(key_upgrade, 0666 | IPC_CREAT);
-		if (msgid_upgrade == -1) {
-			perror("msg_upgrade send failed");
-			exit(EXIT_FAILURE);
-		}
-		msgid_repair = msgget(key_repair, 0666 | IPC_CREAT);
-		if (msgid_repair == -1) {
-			perror("msg_repair send failed");
-			exit(EXIT_FAILURE);
-		}
-		pid_t pid1,pid2,pid3;
-
-		
 		int i = 0;
 		int flag = 1;
 		ssize_t res = 0;
 		long wait_time;
 		while (flag) {
-			
 			if (msgrcv(msgid, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
 				if (errno == ENOMSG){
 					continue;
@@ -263,7 +253,6 @@ void sorter(stopwatch* sw){
 			///put to sleep in avg sort time
 			wait_time = pnrand(AVRG_SORT, SPRD_SORT, MIN_SORT) / thousand;
 			usleep(wait_time * thousand);
-			
 			
 			if (c.c_data.type == TYPE_QUIT) {
 				//printf("im here with quit\n");
@@ -277,10 +266,6 @@ void sorter(stopwatch* sw){
 				}
 				if (msgsnd(msgid_repair, &c, sizeof(c), 0) == -1) {
 					perror("repair snd");
-					exit(EXIT_FAILURE);
-				}
-				if (msgctl(msgid, IPC_RMID, NULL) == -1) {
-					perror("clear failed77");
 					exit(EXIT_FAILURE);
 				}
 				flag = 0;
@@ -309,58 +294,21 @@ void sorter(stopwatch* sw){
 			}
 			i++;
 		}
-		///
-		
-		exit(0);
-	}
-	//printf("exsiting sorter\n");
-	
 	
 }
 
 void repair(stopwatch* sw){
-	pid_t pid;
-	pid = fork();
-	if (pid == 0) {
-		Customer c;
+
+		//Customer c;
 		int thousand = 1000;
-		key_t key_repair, sharedKey;
-		int msgid_repair, shmID;
-		//stopwatch *sw = (stopwatch *) malloc(sizeof(stopwatch));
-		key_repair = ftok("repair", PROJ_ID);
-		if (key_repair == -1) {
-			perror("key_repair1 failed");
-			exit(EXIT_FAILURE);
-		}
-		
-		msgid_repair = msgget(key_repair, 0666 | IPC_CREAT);
-		if (msgid_repair == -1) {
-			perror("msg_repair send1 failed");
-			exit(EXIT_FAILURE);
-		}
-		
 		int i = 0;
 		int flag = 1;
 		ssize_t res = 0;
 		int customer_cnt = 0, total_work = 0, total_wait = 0;
 		
 		while (flag) {
+			//printf("customer id: %ld\n");
 			if (msgrcv(msgid_repair, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
-				if (c.c_data.type == TYPE_QUIT) {
-					printf("quit arrived to repair\n");
-/*				if (msgrcv(msgid_repair, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
-					if (errno == ENOMSG) {
-						flag = 0;
-						continue;
-					}
-				}*/
-					if (msgctl(msgid_repair, IPC_RMID, NULL) == -1) {
-						perror("clear failed11");
-						exit(EXIT_FAILURE);
-					}
-					flag = 0;
-					continue;
-				}
 				if (errno == ENOMSG){
 					continue;
 				}
@@ -369,6 +317,11 @@ void repair(stopwatch* sw){
 				exit(EXIT_FAILURE);
 			}
 			
+			if (c.c_data.type == TYPE_QUIT) {
+				//printf("quit arrived to repair\n");
+				flag = 0;
+				continue;
+			}
 			///start time its swlap()
 			c.c_data.start_time = swlap(sw);
 			///sleep procces time using prand
@@ -387,17 +340,8 @@ void repair(stopwatch* sw){
 			///wait total += start - entry
 			total_wait += c.c_data.start_time - c.c_data.enter_time;
 			if (c.c_data.type == TYPE_QUIT) {
-				printf("quit arrived to repair\n");
-/*				if (msgrcv(msgid_repair, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
-					if (errno == ENOMSG) {
-						flag = 0;
-						continue;
-					}
-				}*/
-				if (msgctl(msgid_repair, IPC_RMID, NULL) == -1) {
-					perror("clear failed23");
-					exit(EXIT_FAILURE);
-				}
+				//printf("quit arrived to repair\n");
+
 				flag = 0;
 				continue;
 			}
@@ -409,63 +353,29 @@ void repair(stopwatch* sw){
 			       c.c_data.elapse_time);
 			i++;
 		}
-		
-		
 
-		//printf("exsiting repair clerk\n");
-	}
-	return;
-	//printf("exsiting repair clerk\n");
 }
 
 void new(stopwatch* sw){
-	pid_t pid;
-	pid = fork();
-	if (pid == 0) {
-		Customer c;
+		//Customer c;
 		int thousand = 1000;
-		key_t key_new, sharedKey;
-		int msgid_new, shmID;
-		
-		
-		key_new = ftok("newCustomer", PROJ_ID);
-		if (key_new == -1) {
-			perror("key_new1 failed");
-			exit(EXIT_FAILURE);
-		}
-		
-		msgid_new = msgget(key_new, 0666 | IPC_CREAT);
-		if (msgid_new == -1) {
-			perror("msg_new send1 failed");
-			exit(EXIT_FAILURE);
-		}
 		int i = 0;
 		int flag = 1;
-		ssize_t res = 0;
 		int customer_cnt = 0, total_work = 0, total_wait = 0;
 		while (flag) {
 			if (msgrcv(msgid_new, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
-				if (c.c_data.type == TYPE_QUIT) {
-					printf("quit arrived to new\n");
-/*				if (msgrcv(msgid_new, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
-					if (errno == ENOMSG) {
-						flag = 0;
-						break;
-					}
-				}*/
-					if (msgctl(msgid_new, IPC_RMID, NULL) == -1) {
-						perror("clear failed34");
-						exit(EXIT_FAILURE);
-					}
-					flag = 0;
-					continue;
-				}
 				if (errno == ENOMSG){
 					continue;
 				}
 				perror("mgs rcv3 failed line 425");
 				printf("%d\n",errno);
 				exit(EXIT_FAILURE);
+			}
+			
+			if (c.c_data.type == TYPE_QUIT) {
+				//printf("quit arrived to new\n");
+				flag = 0;
+				continue;
 			}
 			///start time its swlap()
 			c.c_data.start_time = swlap(sw);
@@ -474,7 +384,6 @@ void new(stopwatch* sw){
 			usleep(c.c_data.process_time * thousand);
 			c.c_data.exit_time = swlap(sw);
 			///as wake up using swlap() for exit time
-			
 			
 			///exit time - entry time = elapsed time
 			c.c_data.elapse_time = c.c_data.exit_time - c.c_data.enter_time;
@@ -493,60 +402,29 @@ void new(stopwatch* sw){
 			       c.c_data.elapse_time);
 			i++;
 		}
-		
-		//printf("exsiting new clerk\n");
-	}
-	return;
+
 }
 void upgrade(stopwatch* sw){
 	//activete watch
-	pid_t  pid;
-	pid = fork();
-	if(pid == 0) {
-		Customer c;
+		//Customer c;
 		int thousand = 1000;
-		key_t key_upgrade, sharedKey;
-		int msgid_upgrade, shmID;
-		//stopwatch *sw = (stopwatch *) malloc(sizeof(stopwatch));
-		
-		key_upgrade = ftok("upgrade", PROJ_ID);
-		if (key_upgrade == -1) {
-			perror("key_upgrade1 failed");
-			exit(EXIT_FAILURE);
-		}
-		
-		msgid_upgrade = msgget(key_upgrade, 0666 | IPC_CREAT);
-		if (msgid_upgrade == -1) {
-			perror("msg_upgrade send1 failed");
-			exit(EXIT_FAILURE);
-		}
 		int i = 0;
 		int flag = 1;
 		ssize_t res = 0;
 		int customer_cnt = 0, total_work = 0, total_wait = 0;
 		while (flag) {
 			if (msgrcv(msgid_upgrade, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
-				if (c.c_data.type == TYPE_QUIT) {
-					printf("quit arrived to upgrade\n");
-/*				if (msgrcv(msgid_upgrade, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
-					if (errno == ENOMSG) {
-						flag = 0;
-						break;
-					}
-				}*/
-					if (msgctl(msgid_upgrade, IPC_RMID, NULL) == -1) {
-						perror("clear failed54");
-						exit(EXIT_FAILURE);
-					}
-					flag = 0;
-					continue;
-				}
 				if (errno == ENOMSG){
 					continue;
 				}
 				perror("mgs rcv1 failed line 504");
 				printf("%d\n",errno);
 				exit(EXIT_FAILURE);
+			}
+			if (c.c_data.type == TYPE_QUIT) {
+				//printf("quit arrived to upgrade\n");
+				flag = 0;
+				continue;
 			}
 			///start time its swlap()
 			c.c_data.start_time = swlap(sw);
@@ -577,13 +455,5 @@ void upgrade(stopwatch* sw){
 			       c.c_data.elapse_time);
 			i++;
 		}
-		
-		
-		//printf("time is now from upgrade : %ld\n",swlap(sw));
-		///print here the quit total of clerky
-		
 
-		//printf("exsiting upgrade clerk\n");
-	}
-	return;
 }
