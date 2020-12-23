@@ -96,8 +96,7 @@ int main(int argc ,char* argv[]){
 		if(quit_action(msgid_quit,msgid) == 2){
 			flag = 0;
 			c.c_id = 2;
-			c.c_data.type = TYPE_QUIT;
-			continue;
+			break;
 		} else {
 			rand_res = urand(min, max);
 			///activate swlap() for the entry ttime
@@ -120,6 +119,9 @@ int main(int argc ,char* argv[]){
 				c.c_data.process_time = pnrand(AVRG_REPAIR,SPRD_REPAIR,MIN_REPAIR);
 			}
 			if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
+				if (errno == EINVAL){
+					break;
+				}
 				printf(" customer type %d\n",c.c_data.type);
 				perror("bla bla line 126");
 				printf("%d\n",errno);
@@ -132,23 +134,23 @@ int main(int argc ,char* argv[]){
 		///divide before printing data
 		
 		i++;
-		usleep(10000);
+		//usleep(10000);
 	}
 	
 /*	waitpid(pid,&status,0);
 	waitpid(pid1,&status,0);
 	waitpid(pid2,&status,0);
 	waitpid(pid3,&status,0);*/
+	if (msgctl(msgid_quit,IPC_RMID,NULL) == -1){
+		perror("clear failed2");
+		exit(EXIT_FAILURE);
+	}
 	while (wait(&status) > 0);
 	
 /*	if (msgctl(msgid,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
 		exit(EXIT_FAILURE);
 	}*/
-	if (msgctl(msgid_quit,IPC_RMID,NULL) == -1){
-		perror("clear failed2");
-		exit(EXIT_FAILURE);
-	}
 	
 	return 0;
 }
@@ -167,6 +169,9 @@ int quit_action(int msgid_quit,int msgid){
 	if(c.c_data.type == TYPE_QUIT) {
 		//printf("i got quit to send to sorter\n");
 		if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
+			if (errno == EINVAL){
+				exit(1);
+			}
 			perror("msgsnd failed line 169");
 			printf("%d\n",errno);
 			exit(EXIT_FAILURE);
@@ -261,7 +266,7 @@ void sorter(stopwatch* sw){
 			
 			
 			if (c.c_data.type == TYPE_QUIT) {
-				printf("im here with quit\n");
+				//printf("im here with quit\n");
 				if (msgsnd(msgid_new, &c, sizeof(c), 0) == -1) {
 					perror("new snd");
 					exit(EXIT_FAILURE);
@@ -275,7 +280,7 @@ void sorter(stopwatch* sw){
 					exit(EXIT_FAILURE);
 				}
 				if (msgctl(msgid, IPC_RMID, NULL) == -1) {
-					perror("clear failed");
+					perror("clear failed77");
 					exit(EXIT_FAILURE);
 				}
 				flag = 0;
@@ -338,10 +343,24 @@ void repair(stopwatch* sw){
 		int flag = 1;
 		ssize_t res = 0;
 		int customer_cnt = 0, total_work = 0, total_wait = 0;
-		printf("time is now from repair: %ld\n", swlap(sw));
 		
 		while (flag) {
 			if (msgrcv(msgid_repair, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+				if (c.c_data.type == TYPE_QUIT) {
+					printf("quit arrived to repair\n");
+/*				if (msgrcv(msgid_repair, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+					if (errno == ENOMSG) {
+						flag = 0;
+						continue;
+					}
+				}*/
+					if (msgctl(msgid_repair, IPC_RMID, NULL) == -1) {
+						perror("clear failed11");
+						exit(EXIT_FAILURE);
+					}
+					flag = 0;
+					continue;
+				}
 				if (errno == ENOMSG){
 					continue;
 				}
@@ -376,7 +395,7 @@ void repair(stopwatch* sw){
 					}
 				}*/
 				if (msgctl(msgid_repair, IPC_RMID, NULL) == -1) {
-					perror("clear failed");
+					perror("clear failed23");
 					exit(EXIT_FAILURE);
 				}
 				flag = 0;
@@ -407,8 +426,7 @@ void new(stopwatch* sw){
 		int thousand = 1000;
 		key_t key_new, sharedKey;
 		int msgid_new, shmID;
-		//stopwatch *sw = (stopwatch *) malloc(sizeof(stopwatch));
-		printf("time is now from new : %ld\n", swlap(sw));
+		
 		
 		key_new = ftok("newCustomer", PROJ_ID);
 		if (key_new == -1) {
@@ -427,6 +445,21 @@ void new(stopwatch* sw){
 		int customer_cnt = 0, total_work = 0, total_wait = 0;
 		while (flag) {
 			if (msgrcv(msgid_new, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+				if (c.c_data.type == TYPE_QUIT) {
+					printf("quit arrived to new\n");
+/*				if (msgrcv(msgid_new, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+					if (errno == ENOMSG) {
+						flag = 0;
+						break;
+					}
+				}*/
+					if (msgctl(msgid_new, IPC_RMID, NULL) == -1) {
+						perror("clear failed34");
+						exit(EXIT_FAILURE);
+					}
+					flag = 0;
+					continue;
+				}
 				if (errno == ENOMSG){
 					continue;
 				}
@@ -451,21 +484,7 @@ void new(stopwatch* sw){
 			total_work += c.c_data.exit_time - c.c_data.start_time;
 			///wait total += start - entry
 			total_wait += c.c_data.start_time - c.c_data.enter_time;
-			if (c.c_data.type == TYPE_QUIT) {
-				printf("quit arrived to new\n");
-/*				if (msgrcv(msgid_new, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
-					if (errno == ENOMSG) {
-						flag = 0;
-						break;
-					}
-				}*/
-				if (msgctl(msgid_new, IPC_RMID, NULL) == -1) {
-					perror("clear failed");
-					exit(EXIT_FAILURE);
-				}
-				flag = 0;
-				continue;
-			}
+
 			printf("%d: new arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
 			       c.c_data.enter_time,
 			       c.c_data.start_time,
@@ -475,9 +494,7 @@ void new(stopwatch* sw){
 			i++;
 		}
 		
-		
-
-		printf("exsiting new clerk\n");
+		//printf("exsiting new clerk\n");
 	}
 	return;
 }
@@ -509,6 +526,21 @@ void upgrade(stopwatch* sw){
 		int customer_cnt = 0, total_work = 0, total_wait = 0;
 		while (flag) {
 			if (msgrcv(msgid_upgrade, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+				if (c.c_data.type == TYPE_QUIT) {
+					printf("quit arrived to upgrade\n");
+/*				if (msgrcv(msgid_upgrade, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+					if (errno == ENOMSG) {
+						flag = 0;
+						break;
+					}
+				}*/
+					if (msgctl(msgid_upgrade, IPC_RMID, NULL) == -1) {
+						perror("clear failed54");
+						exit(EXIT_FAILURE);
+					}
+					flag = 0;
+					continue;
+				}
 				if (errno == ENOMSG){
 					continue;
 				}
@@ -536,21 +568,7 @@ void upgrade(stopwatch* sw){
 			///then printing
 			///when printing divide by 1000
 			///printing here customer data
-			if (c.c_data.type == TYPE_QUIT) {
-				printf("quit arrived to upgrade\n");
-/*				if (msgrcv(msgid_upgrade, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
-					if (errno == ENOMSG) {
-						flag = 0;
-						break;
-					}
-				}*/
-				if (msgctl(msgid_upgrade, IPC_RMID, NULL) == -1) {
-					perror("clear failed");
-					exit(EXIT_FAILURE);
-				}
-				flag = 0;
-				continue;
-			}
+
 			printf("%d: upgrade arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
 			       c.c_data.enter_time,
 			       c.c_data.start_time,
@@ -565,7 +583,7 @@ void upgrade(stopwatch* sw){
 		///print here the quit total of clerky
 		
 
-		printf("exsiting upgrade clerk\n");
+		//printf("exsiting upgrade clerk\n");
 	}
 	return;
 }
