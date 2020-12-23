@@ -83,12 +83,10 @@ int main(int argc ,char* argv[]){
 	}
 	
 	
-	pid_t pid,pid1,pid2,pid3;
-		sorter(sw);
-		new(sw);
-		upgrade(sw);
-		repair(sw);
-	
+	sorter(sw);
+	new(sw);
+	upgrade(sw);
+	repair(sw);
 	//
 	//
 	//
@@ -99,6 +97,7 @@ int main(int argc ,char* argv[]){
 			flag = 0;
 			c.c_id = 2;
 			c.c_data.type = TYPE_QUIT;
+			continue;
 		} else {
 			rand_res = urand(min, max);
 			///activate swlap() for the entry ttime
@@ -122,8 +121,10 @@ int main(int argc ,char* argv[]){
 			}
 		}
 		//printf("iam herer\n");
+		
 		if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
-			perror("bla bla");
+			printf(" customer type %d\n",c.c_data.type);
+			perror("bla bla line 126");
 			printf("%d\n",errno);
 			exit(EXIT_FAILURE);
 		}
@@ -138,7 +139,7 @@ int main(int argc ,char* argv[]){
 	waitpid(pid1,&status,0);
 	waitpid(pid2,&status,0);
 	waitpid(pid3,&status,0);*/
-	wait(&status);
+	while (wait(&status) > 0){;}
 	
 /*	if (msgctl(msgid,IPC_RMID,NULL) == -1){
 		perror("clear failed\n");
@@ -166,7 +167,7 @@ int quit_action(int msgid_quit,int msgid){
 	if(c.c_data.type == TYPE_QUIT) {
 		//printf("i got quit to send to sorter\n");
 		if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
-			perror("msgsnd failed");
+			perror("msgsnd failed line 169");
 			printf("%d\n",errno);
 			exit(EXIT_FAILURE);
 		}
@@ -237,7 +238,8 @@ void sorter(stopwatch* sw){
 			perror("msg_repair send failed");
 			exit(EXIT_FAILURE);
 		}
-		
+		pid_t pid1,pid2,pid3;
+
 		
 		int i = 0;
 		int flag = 1;
@@ -297,12 +299,6 @@ void sorter(stopwatch* sw){
 			}
 			i++;
 		}
-
-/*	waitpid(pid,&status,0);
-	waitpid(pid1,&status,0);
-	waitpid(pid2,&status,0);*/
-		
-		
 		///
 		
 		if (msgctl(msgid, IPC_RMID, NULL) == -1) {
@@ -310,6 +306,7 @@ void sorter(stopwatch* sw){
 			exit(EXIT_FAILURE);
 		}
 	}
+	printf("exsiting sorter\n");
 }
 
 void repair(stopwatch* sw){
@@ -332,20 +329,23 @@ void repair(stopwatch* sw){
 			perror("msg_repair send1 failed");
 			exit(EXIT_FAILURE);
 		}
+		
 		int i = 0;
 		int flag = 1;
 		ssize_t res = 0;
 		int customer_cnt = 0, total_work = 0, total_wait = 0;
 		printf("time is now from repair: %ld\n", swlap(sw));
+		
 		while (flag) {
 			if (msgrcv(msgid_repair, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
 				if (errno == ENOMSG){
 					continue;
 				}
-				perror("mgs rcv2 failed");
+				perror("mgs rcv2 failed line 345");
 				printf("%d\n",errno);
 				exit(EXIT_FAILURE);
 			}
+			
 			///start time its swlap()
 			c.c_data.start_time = swlap(sw);
 			///sleep procces time using prand
@@ -365,12 +365,12 @@ void repair(stopwatch* sw){
 			total_wait += c.c_data.start_time - c.c_data.enter_time;
 			if (c.c_data.type == TYPE_QUIT) {
 				printf("quit arrived to repair\n");
-				if (msgrcv(msgid_repair, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+/*				if (msgrcv(msgid_repair, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
 					if (errno == ENOMSG) {
 						flag = 0;
-						break;
+						continue;
 					}
-				}
+				}*/
 				//flag = 0;
 				//continue;
 			}
@@ -388,7 +388,9 @@ void repair(stopwatch* sw){
 			perror("clear failed");
 			exit(EXIT_FAILURE);
 		}
+		printf("exsiting repair clerk\n");
 	}
+	printf("exsiting repair clerk\n");
 }
 
 void new(stopwatch* sw){
@@ -422,7 +424,7 @@ void new(stopwatch* sw){
 				if (errno == ENOMSG){
 					continue;
 				}
-				perror("mgs rcv3 failed");
+				perror("mgs rcv3 failed line 425");
 				printf("%d\n",errno);
 				exit(EXIT_FAILURE);
 			}
@@ -445,12 +447,12 @@ void new(stopwatch* sw){
 			total_wait += c.c_data.start_time - c.c_data.enter_time;
 			if (c.c_data.type == TYPE_QUIT) {
 				printf("quit arrived to new\n");
-				if (msgrcv(msgid_new, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+/*				if (msgrcv(msgid_new, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
 					if (errno == ENOMSG) {
 						flag = 0;
 						break;
 					}
-				}
+				}*/
 				//flag = 0;
 				//continue;
 			}
@@ -468,6 +470,7 @@ void new(stopwatch* sw){
 			perror("clear failed");
 			exit(EXIT_FAILURE);
 		}
+		printf("exsiting new clerk\n");
 	}
 }
 void upgrade(stopwatch* sw){
@@ -501,7 +504,7 @@ void upgrade(stopwatch* sw){
 				if (errno == ENOMSG){
 					continue;
 				}
-				perror("mgs rcv1 failed");
+				perror("mgs rcv1 failed line 504");
 				printf("%d\n",errno);
 				exit(EXIT_FAILURE);
 			}
@@ -527,12 +530,12 @@ void upgrade(stopwatch* sw){
 			///printing here customer data
 			if (c.c_data.type == TYPE_QUIT) {
 				printf("quit arrived to upgrade\n");
-				if (msgrcv(msgid_upgrade, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+/*				if (msgrcv(msgid_upgrade, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
 					if (errno == ENOMSG) {
 						flag = 0;
 						break;
 					}
-				}
+				}*/
 				//flag = 0;
 				//continue;
 			}
@@ -553,5 +556,6 @@ void upgrade(stopwatch* sw){
 			perror("clear failed");
 			exit(EXIT_FAILURE);
 		}
+		printf("exsiting upgrade clerk\n");
 	}
 }
