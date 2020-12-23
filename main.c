@@ -219,13 +219,12 @@ int quit_action(int msgid_quit,int msgid){
 		}
 	}
 	if(c.c_data.type == TYPE_QUIT) {
-		//printf("i got quit to send to sorter\n");
 		if (msgsnd(msgid, &c,sizeof(c), 0) == -1) {
 			perror("msgsnd failed line 169");
 			printf("%d\n",errno);
 			exit(EXIT_FAILURE);
 		}
-		//printf("quit has arrived\n");
+		//rintf("quit has arrived\n");
 		c.c_data.type = TYPE_QUIT;
 		return 2;
 	}
