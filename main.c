@@ -23,9 +23,12 @@ int main(int argc ,char* argv[]){
 	int status;
 	c.c_id = 1;
 	c.c_data.type = 1;
-	newClerk.type = TYPE_NEW;
-	upgradeClerk.type = TYPE_UPGRADE;
-	repairClerk.type = TYPE_REPAIR;
+	newClerk.clerk_id = 1;
+	newClerk.data.type = TYPE_NEW;
+	upgradeClerk.clerk_id = 1;
+	upgradeClerk.data.type = TYPE_UPGRADE;
+	repairClerk.clerk_id = 1;
+	repairClerk.data.type = TYPE_REPAIR;
 
 	stopwatch sw; // creating the stopwatch for the whole sim
 	swstart(&sw); // starting the watch
@@ -60,19 +63,16 @@ int main(int argc ,char* argv[]){
 			pid2 = fork();
 			if (pid2 == 0){
 				new(&sw);
-                print_clerk_data(newClerk);
 				return 0;
 			} else{
 				pid3 = fork();
 				if (pid3 == 0){
 					upgrade(&sw);
-                    print_clerk_data(upgradeClerk);
 					return 0;
 				} else{
 					pid4 = fork();
 					if (pid4 == 0){
 						repair(&sw);
-                        print_clerk_data(repairClerk);
 						return 0;
 					}
 				}
@@ -80,14 +80,24 @@ int main(int argc ,char* argv[]){
 		}
 	}
 
-
-
-
     waitpid(pid1,&status,0);
     waitpid(pid2,&status,0);
     waitpid(pid3,&status,0);
     waitpid(pid4,&status,0);
 
+    printf("\n");
+    printf("Sorter quitting\n\n");
+    int i;
+    Clerk clerk;
+    for ( i = 0; i < 3 ; ++i) {
+        if (msgrcv(msgid_clerk, &clerk, sizeof(Clerk), 1, IPC_NOWAIT) == -1) {
+            if (errno == ENOMSG) {
+                return 1;
+            }
+        }
+        print_clerk_data(&clerk);
+
+    }
 
 
 	///make delete func for the queues to make code more clean
@@ -207,7 +217,7 @@ void sorter(stopwatch* sw){
 		}
 		i++;
 	}
-	printf("Sorter quitting\n");
+
 }
 
 void repair(stopwatch* sw){
@@ -260,19 +270,22 @@ void repair(stopwatch* sw){
 			flag = 0;
 			continue;
 		}
-		printf("%d: repair arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
-		       c.c_data.enter_time,
-		       c.c_data.start_time,
-		       c.c_data.process_time,
-		       c.c_data.exit_time,
-		       c.c_data.elapse_time);
+		printf("%d: repair ",c.c_data.id);
+		print_customer_data(&c);
+
 	}
-	repairClerk.num_of_customers = customer_cnt;
-	repairClerk.avrg_service = total_work/customer_cnt;
-	repairClerk.avrg_wait = total_wait/customer_cnt;
-	repairClerk.total_service_time = total_work;
-	repairClerk.total_wait_time = total_wait;
-	repairClerk.elapsed_time = elapsed_time_end - elapsed_time_start;
+	repairClerk.data.num_of_customers = customer_cnt;
+	repairClerk.data.avrg_service = total_work/customer_cnt;
+	repairClerk.data.avrg_wait = total_wait/customer_cnt;
+	repairClerk.data.total_service_time = total_work;
+	repairClerk.data.total_wait_time = total_wait;
+	repairClerk.data.elapsed_time = elapsed_time_end - elapsed_time_start;
+    if (msgsnd(msgid_clerk, &repairClerk, sizeof(Clerk), 0) == -1) {
+        printf(" customer type %d\n",c.c_data.type);
+        perror("bla bla line 126");
+        printf("%d\n",errno);
+        exit(EXIT_FAILURE);
+    }
 }
 
 void new(stopwatch* sw){
@@ -316,20 +329,21 @@ void new(stopwatch* sw){
 		///wait total += start - entry
 		total_wait += c.c_data.start_time - c.c_data.enter_time;
 
-		printf("%d: new arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
-		       c.c_data.enter_time,
-		       c.c_data.start_time,
-		       c.c_data.process_time,
-		       c.c_data.exit_time,
-		       c.c_data.elapse_time);
+        printf("%d: new ",c.c_data.id);
+        print_customer_data(&c);
 	}
-    newClerk.num_of_customers = customer_cnt;
-    newClerk.avrg_service = total_work/customer_cnt;
-    newClerk.avrg_wait = total_wait/customer_cnt;
-    newClerk.total_service_time = total_work;
-    newClerk.total_wait_time = total_wait;
-    newClerk.elapsed_time = elapsed_time_end - elapsed_time_start;
-
+    newClerk.data.num_of_customers = customer_cnt;
+    newClerk.data.avrg_service = total_work/customer_cnt;
+    newClerk.data.avrg_wait = total_wait/customer_cnt;
+    newClerk.data.total_service_time = total_work;
+    newClerk.data.total_wait_time = total_wait;
+    newClerk.data.elapsed_time = elapsed_time_end - elapsed_time_start;
+    if (msgsnd(msgid_clerk, &newClerk, sizeof(Clerk), 0) == -1) {
+        printf(" customer type %d\n",c.c_data.type);
+        perror("bla bla line 126");
+        printf("%d\n",errno);
+        exit(EXIT_FAILURE);
+    }
 }
 
 void upgrade(stopwatch* sw){
@@ -377,20 +391,21 @@ void upgrade(stopwatch* sw){
 		///when printing divide by 1000
 		///printing here customer data
 
-		printf("%d: upgrade arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n", c.c_data.id,
-		       c.c_data.enter_time,
-		       c.c_data.start_time,
-		       c.c_data.process_time,
-		       c.c_data.exit_time,
-		       c.c_data.elapse_time);
+        printf("%d: upgrade ",c.c_data.id);
+        print_customer_data(&c);
 	}
-    upgradeClerk.num_of_customers = customer_cnt;
-    upgradeClerk.avrg_service = total_work/customer_cnt;
-    upgradeClerk.avrg_wait = total_wait/customer_cnt;
-    upgradeClerk.total_service_time = total_work;
-    upgradeClerk.total_wait_time = total_wait;
-    upgradeClerk.elapsed_time = elapsed_time_end - elapsed_time_start;
-
+    upgradeClerk.data.num_of_customers = customer_cnt;
+    upgradeClerk.data.avrg_service = total_work/customer_cnt;
+    upgradeClerk.data.avrg_wait = total_wait/customer_cnt;
+    upgradeClerk.data.total_service_time = total_work;
+    upgradeClerk.data.total_wait_time = total_wait;
+    upgradeClerk.data.elapsed_time = elapsed_time_end - elapsed_time_start;
+    if (msgsnd(msgid_clerk, &upgradeClerk, sizeof(Clerk), 0) == -1) {
+        printf(" customer type %d\n",c.c_data.type);
+        perror("bla bla line 126");
+        printf("%d\n",errno);
+        exit(EXIT_FAILURE);
+    }
 
 }
 
@@ -443,32 +458,41 @@ key_t make_key(char* fileName){
     return newKey;
 }
 
-void print_clerk_data(Clerk c){
-    if (c.type == TYPE_NEW){
+void print_clerk_data(Clerk* c){
+    if (c->data.type == TYPE_NEW){
         printf("Clerk for new customers is quitting\n");
-        printf("Clerk for new customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n",c.num_of_customers
-                ,c.elapsed_time
-                ,c.total_service_time
-                ,c.total_wait_time
-                ,c.avrg_service
-                ,c.avrg_wait);
+        printf("Clerk for new customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n\n",c->data.num_of_customers
+                ,c->data.elapsed_time
+                ,c->data.total_service_time
+                ,c->data.total_wait_time
+                ,c->data.avrg_service
+                ,c->data.avrg_wait);
     }
-    if (c.type == TYPE_UPGRADE){
+    if (c->data.type == TYPE_UPGRADE){
         printf("Clerk for upgrade customers is quitting\n");
-        printf("Clerk for upgrade customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n",c.num_of_customers
-                ,c.elapsed_time
-                ,c.total_service_time
-                ,c.total_wait_time
-                ,c.avrg_service
-                ,c.avrg_wait);
+        printf("Clerk for upgrade customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n\n",c->data.num_of_customers
+                ,c->data.elapsed_time
+                ,c->data.total_service_time
+                ,c->data.total_wait_time
+                ,c->data.avrg_service
+                ,c->data.avrg_wait);
     }
-    if (c.type == TYPE_REPAIR){
+    if (c->data.type == TYPE_REPAIR){
         printf("Clerk for repair customers is quitting\n");
-        printf("Clerk for repair customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n",c.num_of_customers
-                ,c.elapsed_time
-                ,c.total_service_time
-                ,c.total_wait_time
-                ,c.avrg_service
-                ,c.avrg_wait);
+        printf("Clerk for repair customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n\n",c->data.num_of_customers
+                ,c->data.elapsed_time
+                ,c->data.total_service_time
+                ,c->data.total_wait_time
+                ,c->data.avrg_service
+                ,c->data.avrg_wait);
     }
+}
+
+void print_customer_data(Customer* c){
+    printf("arrived: %ld started: %ld processed: %d exited: %ld elapse: %ld\n",
+           c->c_data.enter_time,
+           c->c_data.start_time,
+           c->c_data.process_time,
+           c->c_data.exit_time,
+           c->c_data.elapse_time);
 }

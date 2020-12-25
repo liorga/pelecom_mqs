@@ -71,7 +71,7 @@ typedef struct customer
 	data  c_data;
 } Customer;
 
-typedef struct clerk{
+typedef struct clerk_data{
     int num_of_customers;
     long elapsed_time;
     int total_wait_time;
@@ -79,6 +79,11 @@ typedef struct clerk{
     int avrg_service;
     int avrg_wait;
     int type;
+}CLdata;
+
+typedef struct clerk{
+    long clerk_id;
+    CLdata data;
 }Clerk;
 
 int quit_action(int msgid_quit,int msgid);
@@ -90,6 +95,7 @@ void arrivel(stopwatch* sw);
 int create_message_queue(key_t key);
 void queue_remove(int id);
 key_t make_key(char* fileName);
-void print_clerk_data(Clerk c);
+void print_clerk_data(Clerk* c);
+void print_customer_data(Customer* c);
 
 #endif //PELECOM_MQS_PELECOM_H
