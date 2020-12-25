@@ -13,8 +13,6 @@
 #include <sys/shm.h>
 #define PROJ_ID 17
 
-
-
 int quit_action(int msgid_quit,int msgid);
 void upgrade(stopwatch* sw);
 void new(stopwatch* sw);
@@ -24,6 +22,7 @@ void sorter(stopwatch* sw);
 key_t key,keyQuit,key_new,key_repair,key_upgrade;
 int msgid,msgid_quit,msgid_new,msgid_repair,msgid_upgrade;
 Customer c;
+Clerk repairClerk,upgradeClerk,newClerk;
 
 int main(int argc ,char* argv[]){
 	
@@ -32,8 +31,8 @@ int main(int argc ,char* argv[]){
 	///start watch
 	int i = 10000;
 	int rand_res;
-	int min =0,max = 100;
-	int flag = 1;
+	int min =0,max = 100; ///used for randomization of the customers creating
+	int flag = 1; /// for while loop
 	int status;
 	int thousand = 1000;
 	//Customer c;
@@ -180,8 +179,7 @@ int main(int argc ,char* argv[]){
 	//printf("pid3 status is : %d\n",WEXITSTATUS(status));
 	waitpid(pid4,&status,0);
 	//printf("pid4 status is : %d\n",WEXITSTATUS(status));
-	
-//	while (wait(&status) > 0);
+
 	
 	
 	///make delete func for the queues to make code more clean

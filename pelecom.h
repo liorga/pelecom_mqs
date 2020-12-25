@@ -69,5 +69,13 @@ typedef struct customer
 	data  c_data;
 } Customer;
 
+typedef struct clerk{
+    int num_of_customers;
+    long elapsed_time;
+    int total_wait_time;
+    int total_service_time;
+    int avrg_service;
+    int avrg_wait;
+}Clerk;
 
 #endif //PELECOM_MQS_PELECOM_H
