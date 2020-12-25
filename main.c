@@ -12,12 +12,14 @@
 #include "stopwatch.h"
 #include <sys/shm.h>
 #define PROJ_ID 17
+#define THOUSAND 1000
 
 int quit_action(int msgid_quit,int msgid);
 void upgrade(stopwatch* sw);
 void new(stopwatch* sw);
 void repair(stopwatch* sw);
 void sorter(stopwatch* sw);
+void arrivel(stopwatch* sw);
 
 key_t key,keyQuit,key_new,key_repair,key_upgrade;
 int msgid,msgid_quit,msgid_new,msgid_repair,msgid_upgrade;
@@ -27,22 +29,19 @@ Clerk repairClerk,upgradeClerk,newClerk;
 int main(int argc ,char* argv[]){
 	
 	initrand();
-	
-	///start watch
-	int i = 10000;
-	int rand_res;
-	int min =0,max = 100; ///used for randomization of the customers creating
-	int flag = 1; /// for while loop
+
+    int pid,pid1,pid2,pid3,pid4;
 	int status;
-	int thousand = 1000;
+
 	//Customer c;
 	c.c_id = 1;
 	c.c_data.type = 1;
 	
-	stopwatch sw;
-	swstart(&sw);
+	stopwatch sw; // creating the stopwatch for the whole sim
+	swstart(&sw); // starting the watch
 	
 	///todo: function for keys and qeueus to make code more clean and readble
+	///creating the unique keys for the queues
 	key = ftok("sort", PROJ_ID);
 	if(key == -1){
 		perror("key failed");
@@ -73,7 +72,7 @@ int main(int argc ,char* argv[]){
 		exit(EXIT_FAILURE);
 	}
 	
-	
+	///creating the queues using he keys
 	msgid_quit = msgget(keyQuit, 0666 | IPC_CREAT);
 	if(msgid_quit == -1){
 		perror("msg send failed");
@@ -100,52 +99,13 @@ int main(int argc ,char* argv[]){
 		perror("msg_repair send failed");
 		exit(EXIT_FAILURE);
 	}
-	
-	//
-	//
-	//
-	//
-	int pid,pid1,pid2,pid3,pid4;
-	pid = fork();
-	if (pid == 0){
-		long wait_time;
-		while (flag){
-			if(quit_action(msgid_quit,msgid) == 2){
-				flag = 0;
-				continue;
-			} else {
-				rand_res = urand(min, max);
-				///activate swlap() for the entry ttime
-				c.c_data.enter_time = swlap(&sw);
-				c.c_data.id = i;
-				wait_time =(int)pnrand(AVRG_ARRIVE,SPRD_ARRIVE,MIN_ARRIVE);
-				usleep(wait_time);
-				///pnrand() with arrive data in pelecom.h wait avrg time
-				if (rand_res <= POP_NEW) {
-					///pnrand() for each type use pelecom header for type procces time
-					c.c_data.type = TYPE_NEW;
-					c.c_data.process_time = pnrand(AVRG_NEW,SPRD_NEW,MIN_NEW);
-				}
-				if (rand_res > POP_NEW && rand_res <= POP_REPAIR) {
-					c.c_data.type = TYPE_UPGRADE;
-					c.c_data.process_time = pnrand(AVRG_UPGRADE,SPRD_UPGRADE,MIN_UPGRADE);
-				}
-				if (rand_res > POP_REPAIR) {
-					c.c_data.type = TYPE_REPAIR;
-					c.c_data.process_time = pnrand(AVRG_REPAIR,SPRD_REPAIR,MIN_REPAIR);
-				}
-				if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
-					printf(" customer type %d\n",c.c_data.type);
-					perror("bla bla line 126");
-					printf("%d\n",errno);
-					exit(EXIT_FAILURE);
-				}
-			}
-			i++;
-		}
-		return 0;
-	}
-	else{
+
+    ///starting the arrival and creation of costumers process
+    pid = fork();
+    if (pid == 0){
+        arrivel(&sw);
+        return 0;
+    }else{
 		pid1 = fork();
 		if (pid1 == 0){
 			sorter(&sw);
@@ -208,6 +168,8 @@ int main(int argc ,char* argv[]){
 }
 
 
+
+
 int quit_action(int msgid_quit,int msgid){
 	//Customer c;
 	if (msgrcv(msgid_quit, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
@@ -230,26 +192,69 @@ int quit_action(int msgid_quit,int msgid){
 	return 1;
 }
 
+void arrivel(stopwatch* sw){
+    int i = 10000;
+    int rand_res;
+    int min =0,max = 100; ///used for randomization of the customers creating
+    int flag = 1; /// for while loop
+    long wait_time;
+
+    while (flag){
+        if(quit_action(msgid_quit,msgid) == 2){
+            flag = 0;
+            continue;
+        } else {
+            rand_res = urand(min, max);
+            ///activate swlap() for the entry ttime
+            c.c_data.enter_time = swlap(sw);
+            c.c_data.id = i;
+            wait_time =(int)pnrand(AVRG_ARRIVE,SPRD_ARRIVE,MIN_ARRIVE);
+            usleep(wait_time);
+            ///pnrand() with arrive data in pelecom.h wait avrg time
+            if (rand_res <= POP_NEW) {
+                ///pnrand() for each type use pelecom header for type procces time
+                c.c_data.type = TYPE_NEW;
+                c.c_data.process_time = pnrand(AVRG_NEW,SPRD_NEW,MIN_NEW);
+            }
+            if (rand_res > POP_NEW && rand_res <= POP_REPAIR) {
+                c.c_data.type = TYPE_UPGRADE;
+                c.c_data.process_time = pnrand(AVRG_UPGRADE,SPRD_UPGRADE,MIN_UPGRADE);
+            }
+            if (rand_res > POP_REPAIR) {
+                c.c_data.type = TYPE_REPAIR;
+                c.c_data.process_time = pnrand(AVRG_REPAIR,SPRD_REPAIR,MIN_REPAIR);
+            }
+            if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
+                printf(" customer type %d\n",c.c_data.type);
+                perror("bla bla line 126");
+                printf("%d\n",errno);
+                exit(EXIT_FAILURE);
+            }
+        }
+        i++;
+    }
+}
+
 void sorter(stopwatch* sw){
-	printf("Sorter running\n");
-	int status;
-	int thousand = 1000;
-	int i = 0;
-	int flag = 1;
-	ssize_t res = 0;
-	long wait_time;
-	while (flag) {
-		if (msgrcv(msgid, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
-			if (errno == ENOMSG){
-				continue;
-			}
+    printf("Sorter running\n");
+    int status;
+    int thousand = 1000;
+    int i = 0;
+    int flag = 1;
+    ssize_t res = 0;
+    long wait_time;
+    while (flag) {
+        if (msgrcv(msgid, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
+            if (errno == ENOMSG){
+                continue;
+            }
 			perror("mgs rcv failed");
 			exit(EXIT_FAILURE);
 		}
 		///sort wait use avg sort from pnrand()
 		///put to sleep in avg sort time
-		wait_time = pnrand(AVRG_SORT, SPRD_SORT, MIN_SORT) / thousand;
-		usleep(wait_time * thousand);
+		wait_time = pnrand(AVRG_SORT, SPRD_SORT, MIN_SORT) / THOUSAND;
+		usleep(wait_time * THOUSAND);
 			
 		if (c.c_data.type == TYPE_QUIT) {
 			//printf("im here with quit\n");
@@ -323,8 +328,8 @@ void repair(stopwatch* sw){
 		///start time its swlap()
 		c.c_data.start_time = swlap(sw);
 		///sleep procces time using prand
-		c.c_data.process_time = pnrand(AVRG_UPGRADE, SPRD_UPGRADE, MIN_UPGRADE) / thousand;
-		usleep(c.c_data.process_time * thousand);
+		c.c_data.process_time = pnrand(AVRG_UPGRADE, SPRD_UPGRADE, MIN_UPGRADE) / THOUSAND;
+		usleep(c.c_data.process_time * THOUSAND);
 		c.c_data.exit_time = swlap(sw);
 		///as wake up using swlap() for exit time
 			
@@ -365,7 +370,6 @@ void new(stopwatch* sw){
 	printf("Clerk for new customers is starting\n");
 	long elapsed_time_start = swlap(sw);
 	long elapsed_time_end;
-	int thousand = 1000;
 	int i = 0;
 	int flag = 1;
 	int customer_cnt = 0, total_work = 0, total_wait = 0;
@@ -388,8 +392,8 @@ void new(stopwatch* sw){
 		///start time its swlap()
 		c.c_data.start_time = swlap(sw);
 		///sleep procces time using prand
-		c.c_data.process_time = pnrand(AVRG_UPGRADE, SPRD_UPGRADE, MIN_UPGRADE) / thousand;
-		usleep(c.c_data.process_time * thousand);
+		c.c_data.process_time = pnrand(AVRG_UPGRADE, SPRD_UPGRADE, MIN_UPGRADE) / THOUSAND;
+		usleep(c.c_data.process_time * THOUSAND);
 		c.c_data.exit_time = swlap(sw);
 		///as wake up using swlap() for exit time
 			
@@ -423,7 +427,6 @@ void upgrade(stopwatch* sw){
 	printf("Clerk for upgrade customers is starting\n");
 	long elapsed_time_start = swlap(sw);
 	long elapsed_time_end;
-	int thousand = 1000;
 	int i = 0;
 	int flag = 1;
 	ssize_t res = 0;
@@ -446,8 +449,8 @@ void upgrade(stopwatch* sw){
 		///start time its swlap()
 		c.c_data.start_time = swlap(sw);
 		///sleep procces time using prand
-		c.c_data.process_time = pnrand(AVRG_UPGRADE, SPRD_UPGRADE, MIN_UPGRADE) / thousand;
-		usleep(c.c_data.process_time * thousand);
+		c.c_data.process_time = pnrand(AVRG_UPGRADE, SPRD_UPGRADE, MIN_UPGRADE) / THOUSAND;
+		usleep(c.c_data.process_time * THOUSAND);
 		c.c_data.exit_time = swlap(sw);
 		///as wake up using swlap() for exit time
 			
