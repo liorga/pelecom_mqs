@@ -12,6 +12,8 @@
 /*
  * Customer type: what does the customer wish to accomplish?
  */
+#include "stopwatch.h"
+
 #define TYPE_NEW      0		// new customer
 #define TYPE_UPGRADE  1		// customer wishes to upgrade hardware or program
 #define TYPE_REPAIR   2		// customer wisher to repair hardware
@@ -76,6 +78,18 @@ typedef struct clerk{
     int total_service_time;
     int avrg_service;
     int avrg_wait;
+    int type;
 }Clerk;
+
+int quit_action(int msgid_quit,int msgid);
+void upgrade(stopwatch* sw);
+void new(stopwatch* sw);
+void repair(stopwatch* sw);
+void sorter(stopwatch* sw);
+void arrivel(stopwatch* sw);
+int create_message_queue(key_t key);
+void queue_remove(int id);
+key_t make_key(char* fileName);
+void print_clerk_data(Clerk c);
 
 #endif //PELECOM_MQS_PELECOM_H

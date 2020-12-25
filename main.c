@@ -8,23 +8,12 @@
 #include <wait.h>
 #include "random.h"
 #include "pelecom.h"
-#include "stopwatch.h"
 #define PROJ_ID 17
 #define THOUSAND 1000
 
-int quit_action(int msgid_quit,int msgid);
-void upgrade(stopwatch* sw);
-void new(stopwatch* sw);
-void repair(stopwatch* sw);
-void sorter(stopwatch* sw);
-void arrivel(stopwatch* sw);
-int create_message_queue(key_t key);
-void queue_remove(int id);
-key_t make_key(char* fileName);
 
-
-key_t key,keyQuit,key_new,key_repair,key_upgrade;
-int msgid,msgid_quit,msgid_new,msgid_repair,msgid_upgrade;
+key_t key,keyQuit,key_new,key_repair,key_upgrade,key_clerk;
+int msgid,msgid_quit,msgid_new,msgid_repair,msgid_upgrade,msgid_clerk;
 Customer c;
 Clerk repairClerk,upgradeClerk,newClerk;
 
@@ -34,7 +23,10 @@ int main(int argc ,char* argv[]){
 	int status;
 	c.c_id = 1;
 	c.c_data.type = 1;
-	
+	newClerk.type = TYPE_NEW;
+	upgradeClerk.type = TYPE_UPGRADE;
+	repairClerk.type = TYPE_REPAIR;
+
 	stopwatch sw; // creating the stopwatch for the whole sim
 	swstart(&sw); // starting the watch
 
@@ -44,6 +36,7 @@ int main(int argc ,char* argv[]){
 	key_upgrade = make_key("upgrade");
 	key_new = make_key("newCustomer");
 	key_repair = make_key("repair");
+	key_clerk = make_key("clerk");
 	
 	///creating the queues using he keys
 	msgid_quit = create_message_queue(keyQuit);
@@ -51,6 +44,7 @@ int main(int argc ,char* argv[]){
 	msgid_new = create_message_queue(key_new);
 	msgid_upgrade = create_message_queue(key_upgrade);
 	msgid_repair = create_message_queue(key_repair);
+    msgid_clerk = create_message_queue(key_clerk);
 
     ///starting the arrival and creation of costumers process
     pid = fork();
@@ -66,27 +60,35 @@ int main(int argc ,char* argv[]){
 			pid2 = fork();
 			if (pid2 == 0){
 				new(&sw);
+                print_clerk_data(newClerk);
 				return 0;
 			} else{
 				pid3 = fork();
 				if (pid3 == 0){
 					upgrade(&sw);
+                    print_clerk_data(upgradeClerk);
 					return 0;
 				} else{
 					pid4 = fork();
 					if (pid4 == 0){
 						repair(&sw);
+                        print_clerk_data(repairClerk);
 						return 0;
 					}
 				}
 			}
 		}
 	}
-	
-	waitpid(pid1,&status,0);
-	waitpid(pid2,&status,0);
-	waitpid(pid3,&status,0);
-	waitpid(pid4,&status,0);
+
+
+
+
+    waitpid(pid1,&status,0);
+    waitpid(pid2,&status,0);
+    waitpid(pid3,&status,0);
+    waitpid(pid4,&status,0);
+
+
 
 	///make delete func for the queues to make code more clean
 	queue_remove(msgid);
@@ -94,6 +96,7 @@ int main(int argc ,char* argv[]){
     queue_remove(msgid_new);
     queue_remove(msgid_upgrade);
     queue_remove(msgid_repair);
+    queue_remove(msgid_clerk);
 
 	return 0;
 }
@@ -263,16 +266,13 @@ void repair(stopwatch* sw){
 		       c.c_data.process_time,
 		       c.c_data.exit_time,
 		       c.c_data.elapse_time);
-		i++;
 	}
-	printf("Clerk for repair customers is quitting\n");
-	printf("Clerk for repair customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n",customer_cnt
-			,elapsed_time_end-elapsed_time_start
-			,total_work
-			,total_wait
-			,total_work/customer_cnt
-			,total_wait/customer_cnt);
-
+	repairClerk.num_of_customers = customer_cnt;
+	repairClerk.avrg_service = total_work/customer_cnt;
+	repairClerk.avrg_wait = total_wait/customer_cnt;
+	repairClerk.total_service_time = total_work;
+	repairClerk.total_wait_time = total_wait;
+	repairClerk.elapsed_time = elapsed_time_end - elapsed_time_start;
 }
 
 void new(stopwatch* sw){
@@ -322,15 +322,13 @@ void new(stopwatch* sw){
 		       c.c_data.process_time,
 		       c.c_data.exit_time,
 		       c.c_data.elapse_time);
-		i++;
 	}
-	printf("Clerk for new customers is quitting\n");
-	printf("Clerk for new customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n",customer_cnt
-			,elapsed_time_end-elapsed_time_start
-			,total_work
-			,total_wait
-			,total_work/customer_cnt
-			,total_wait/customer_cnt);
+    newClerk.num_of_customers = customer_cnt;
+    newClerk.avrg_service = total_work/customer_cnt;
+    newClerk.avrg_wait = total_wait/customer_cnt;
+    newClerk.total_service_time = total_work;
+    newClerk.total_wait_time = total_wait;
+    newClerk.elapsed_time = elapsed_time_end - elapsed_time_start;
 
 }
 
@@ -385,17 +383,17 @@ void upgrade(stopwatch* sw){
 		       c.c_data.process_time,
 		       c.c_data.exit_time,
 		       c.c_data.elapse_time);
-		i++;
 	}
+    upgradeClerk.num_of_customers = customer_cnt;
+    upgradeClerk.avrg_service = total_work/customer_cnt;
+    upgradeClerk.avrg_wait = total_wait/customer_cnt;
+    upgradeClerk.total_service_time = total_work;
+    upgradeClerk.total_wait_time = total_wait;
+    upgradeClerk.elapsed_time = elapsed_time_end - elapsed_time_start;
 
-	printf("Clerk for upgrade customers is quitting\n");
-	printf("Clerk for upgrade customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n",customer_cnt
-		,elapsed_time_end-elapsed_time_start
-		,total_work
-		,total_wait
-		,total_work/customer_cnt
-		,total_wait/customer_cnt);
+
 }
+
 int create_message_queue(key_t key){
     int id;
     id = msgget(key, 0666 | IPC_CREAT);
@@ -443,4 +441,34 @@ key_t make_key(char* fileName){
         exit(EXIT_FAILURE);
     }
     return newKey;
+}
+
+void print_clerk_data(Clerk c){
+    if (c.type == TYPE_NEW){
+        printf("Clerk for new customers is quitting\n");
+        printf("Clerk for new customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n",c.num_of_customers
+                ,c.elapsed_time
+                ,c.total_service_time
+                ,c.total_wait_time
+                ,c.avrg_service
+                ,c.avrg_wait);
+    }
+    if (c.type == TYPE_UPGRADE){
+        printf("Clerk for upgrade customers is quitting\n");
+        printf("Clerk for upgrade customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n",c.num_of_customers
+                ,c.elapsed_time
+                ,c.total_service_time
+                ,c.total_wait_time
+                ,c.avrg_service
+                ,c.avrg_wait);
+    }
+    if (c.type == TYPE_REPAIR){
+        printf("Clerk for repair customers is quitting\n");
+        printf("Clerk for repair customers: processed %d customers\n elapsed: %ld work: %d wait: %d\n per customer: work: %d wait: %d\n",c.num_of_customers
+                ,c.elapsed_time
+                ,c.total_service_time
+                ,c.total_wait_time
+                ,c.avrg_service
+                ,c.avrg_wait);
+    }
 }
