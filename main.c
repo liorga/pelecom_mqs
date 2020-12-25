@@ -105,12 +105,12 @@ int main(int argc ,char* argv[]){
     if (pid == 0){
         arrivel(&sw);
         return 0;
-    }else{
-		pid1 = fork();
-		if (pid1 == 0){
-			sorter(&sw);
-			return 0;
-		} else{
+    } else{
+        pid1 = fork();
+        if (pid1 == 0){
+            sorter(&sw);
+            return 0;
+        } else{
 			pid2 = fork();
 			if (pid2 == 0){
 				new(&sw);
