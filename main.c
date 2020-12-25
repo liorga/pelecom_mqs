@@ -10,8 +10,11 @@
 #include "pelecom.h"
 #define PROJ_ID 17
 #define THOUSAND 1000
+#define CLERK_NUMBER 3
 
-
+/**
+ * keys and messages id's to be used in all the child process
+ */
 key_t key,keyQuit,key_new,key_repair,key_upgrade,key_clerk;
 int msgid,msgid_quit,msgid_new,msgid_repair,msgid_upgrade,msgid_clerk;
 Customer c;
@@ -21,6 +24,9 @@ int main(int argc ,char* argv[]){
 	initrand();
     int pid,pid1,pid2,pid3,pid4;
 	int status;
+	/**
+	 * initialize the customer and the clreks before staring to send them to the queues
+	 */
 	c.c_id = 1;
 	c.c_data.type = 1;
 	newClerk.clerk_id = 1;
@@ -41,7 +47,7 @@ int main(int argc ,char* argv[]){
 	key_repair = make_key("repair");
 	key_clerk = make_key("clerk");
 	
-	///creating the queues using he keys
+	///creating the queues using the keys
 	msgid_quit = create_message_queue(keyQuit);
 	msgid = create_message_queue(key);
 	msgid_new = create_message_queue(key_new);
@@ -49,7 +55,7 @@ int main(int argc ,char* argv[]){
 	msgid_repair = create_message_queue(key_repair);
     msgid_clerk = create_message_queue(key_clerk);
 
-    ///starting the arrival and creation of costumers process
+    ///starting all of the different process with fork for each process
     pid = fork();
     if (pid == 0){
         arrivel(&sw);
@@ -79,17 +85,22 @@ int main(int argc ,char* argv[]){
 			}
 		}
 	}
-
+    /**
+     * waiting for child process to end
+     */
     waitpid(pid1,&status,0);
     waitpid(pid2,&status,0);
     waitpid(pid3,&status,0);
     waitpid(pid4,&status,0);
 
+    /**
+     * printing the total clerk data of the customers different services
+     */
     printf("\n");
     printf("Sorter quitting\n\n");
     int i;
     Clerk clerk;
-    for ( i = 0; i < 3 ; ++i) {
+    for ( i = 0; i < CLERK_NUMBER ; ++i) {
         if (msgrcv(msgid_clerk, &clerk, sizeof(Clerk), 1, IPC_NOWAIT) == -1) {
             if (errno == ENOMSG) {
                 return 1;
@@ -100,7 +111,9 @@ int main(int argc ,char* argv[]){
     }
 
 
-	///make delete func for the queues to make code more clean
+	/**
+	 * removing all the message queues from the system
+	 */
 	queue_remove(msgid);
     queue_remove(msgid_quit);
     queue_remove(msgid_new);
@@ -124,8 +137,8 @@ void arrivel(stopwatch* sw){
             flag = 0;
             continue;
         } else {
-            rand_res = urand(min, max);
-            ///activate swlap() for the entry ttime
+            rand_res = urand(min, max);///randomize the probability of create the type of customer
+            ///activate swlap() for the entry time
             c.c_data.enter_time = swlap(sw);
             c.c_data.id = i;
             wait_time =(int)pnrand(AVRG_ARRIVE,SPRD_ARRIVE,MIN_ARRIVE);
@@ -165,6 +178,7 @@ void sorter(stopwatch* sw){
     ssize_t res = 0;
     long wait_time;
     while (flag) {
+        ///get the message from the arrival process
         if (msgrcv(msgid, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
             if (errno == ENOMSG){
                 continue;
@@ -177,6 +191,7 @@ void sorter(stopwatch* sw){
 		wait_time = pnrand(AVRG_SORT, SPRD_SORT, MIN_SORT) / THOUSAND;
 		usleep(wait_time * THOUSAND);
 
+		///if got quit type customer the pass it on to all of the clerk to signal them its time to close
 		if (c.c_data.type == TYPE_QUIT) {
 			//printf("im here with quit\n");
 			if (msgsnd(msgid_new, &c, sizeof(c), 0) == -1) {
@@ -194,6 +209,7 @@ void sorter(stopwatch* sw){
 			flag = 0;
 			continue;
 		}
+        ///sending the customers to the right clerk for service
 		if (c.c_data.type == TYPE_NEW) {
 			//printf("new customer\n");
 			if (msgsnd(msgid_new, &c, sizeof(c), 0) == -1) {
@@ -232,7 +248,7 @@ void repair(stopwatch* sw){
 	int customer_cnt = 0, total_work = 0, total_wait = 0;
 
 	while (flag) {
-		//printf("customer id: %ld\n");
+	    ///get the message from the sorter and start to give service for the customer
 		if (msgrcv(msgid_repair, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
 			if (errno == ENOMSG){
 				continue;
@@ -241,7 +257,7 @@ void repair(stopwatch* sw){
 			printf("%d\n",errno);
 			exit(EXIT_FAILURE);
 		}
-
+        ///ends the loop if the customer is type quit
 		if (c.c_data.type == TYPE_QUIT) {
 			//printf("quit arrived to repair\n");
 			flag = 0;
@@ -274,6 +290,7 @@ void repair(stopwatch* sw){
 		print_customer_data(&c);
 
 	}
+	///initialize the clerk data fields and send it to the main process to print in the end
 	repairClerk.data.num_of_customers = customer_cnt;
 	repairClerk.data.avrg_service = total_work/customer_cnt;
 	repairClerk.data.avrg_wait = total_wait/customer_cnt;
@@ -297,6 +314,7 @@ void new(stopwatch* sw){
 	int flag = 1;
 	int customer_cnt = 0, total_work = 0, total_wait = 0;
 	while (flag) {
+        ///get the message from the sorter and start to give service for the customer
 		if (msgrcv(msgid_new, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
 			if (errno == ENOMSG){
 				continue;
@@ -305,7 +323,7 @@ void new(stopwatch* sw){
 			printf("%d\n",errno);
 			exit(EXIT_FAILURE);
 		}
-
+        ///ends the loop if the customer is type quit
 		if (c.c_data.type == TYPE_QUIT) {
 			//printf("quit arrived to new\n");
 			elapsed_time_end = swlap(sw);
@@ -332,6 +350,7 @@ void new(stopwatch* sw){
         printf("%d: new ",c.c_data.id);
         print_customer_data(&c);
 	}
+    ///initialize the clerk data fields and send it to the main process to print in the end
     newClerk.data.num_of_customers = customer_cnt;
     newClerk.data.avrg_service = total_work/customer_cnt;
     newClerk.data.avrg_wait = total_wait/customer_cnt;
@@ -356,6 +375,7 @@ void upgrade(stopwatch* sw){
 	ssize_t res = 0;
 	int customer_cnt = 0, total_work = 0, total_wait = 0;
 	while (flag) {
+        ///get the message from the sorter and start to give service for the customer
 		if (msgrcv(msgid_upgrade, &c, sizeof(c), 1, IPC_NOWAIT) == -1) {
 			if (errno == ENOMSG){
 				continue;
@@ -364,6 +384,7 @@ void upgrade(stopwatch* sw){
 			printf("%d\n",errno);
 			exit(EXIT_FAILURE);
 		}
+		///ends the loop if the customer is type quit
 		if (c.c_data.type == TYPE_QUIT) {
 			//printf("quit arrived to upgrade\n");
 			elapsed_time_end = swlap(sw);
@@ -394,6 +415,7 @@ void upgrade(stopwatch* sw){
         printf("%d: upgrade ",c.c_data.id);
         print_customer_data(&c);
 	}
+    ///initialize the clerk data fields and send it to the main process to print in the end
     upgradeClerk.data.num_of_customers = customer_cnt;
     upgradeClerk.data.avrg_service = total_work/customer_cnt;
     upgradeClerk.data.avrg_wait = total_wait/customer_cnt;
