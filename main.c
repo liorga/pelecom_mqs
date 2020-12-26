@@ -155,9 +155,7 @@ void arrivel(stopwatch* sw){
                 c.c_data.process_time = pnrand(AVRG_REPAIR,SPRD_REPAIR,MIN_REPAIR);
             }
             if (msgsnd(msgid, &c, sizeof(c), 0) == -1) {
-                printf(" customer type %d\n",c.c_data.type);
-                perror("bla bla line 126");
-                printf("%d\n",errno);
+                perror("msgsnd failed");
                 exit(EXIT_FAILURE);
             }
         }
@@ -244,6 +242,7 @@ void repair(stopwatch* sw){
 		}
         ///ends the loop if the customer is type quit
 		if (c.c_data.type == TYPE_QUIT) {
+            elapsed_time_end = swlap(sw);
 			flag = 0;
 			continue;
 		}
