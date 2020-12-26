@@ -249,7 +249,7 @@ void repair(stopwatch* sw){
 		///start time its swlap()
 		c.c_data.start_time = swlap(sw);
 		///sleep procces time using prand
-		c.c_data.process_time = pnrand(AVRG_UPGRADE, SPRD_UPGRADE, MIN_UPGRADE) / THOUSAND;
+		c.c_data.process_time = pnrand(AVRG_REPAIR, SPRD_REPAIR, MIN_REPAIR) / THOUSAND;
 		usleep(c.c_data.process_time * THOUSAND);
 		///as wake up using swlap() for exit time
         c.c_data.exit_time = swlap(sw);
@@ -307,7 +307,7 @@ void new(stopwatch* sw){
 		///start time its swlap()
 		c.c_data.start_time = swlap(sw);
 		///sleep procces time using prand
-		c.c_data.process_time = pnrand(AVRG_UPGRADE, SPRD_UPGRADE, MIN_UPGRADE) / THOUSAND;
+		c.c_data.process_time = pnrand(AVRG_NEW, SPRD_NEW, MIN_NEW) / THOUSAND;
 		usleep(c.c_data.process_time * THOUSAND);
 		///as wake up using swlap() for exit time
         c.c_data.exit_time = swlap(sw);
